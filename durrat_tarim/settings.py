@@ -5,9 +5,11 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or os.getenv("JWT_SECRET") or "dev-only-change-me"
-DEBUG = os.getenv("DJANGO_DEBUG", "1").lower() not in {"0", "false", "no"}
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",") if host.strip()]
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or os.getenv("JWT_SECRET")
+DEBUG = os.getenv("DJANGO_DEBUG","False") == "True"
+ALLOWED_HOSTS = [
+    ".vercel.app"
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -63,20 +65,18 @@ if all(os.getenv(key) for key in ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRE
         "PORT": os.getenv("POSTGRES_PORT", "5432"),
         "OPTIONS": {
             "sslmode": os.getenv("POSTGRES_SSLMODE", "prefer"),
-            "hostaddr": os.getenv("PGHOSTADDR", ""),
-            "options": "-c external_id=jjwiuqtdqkumsefjmhom",
         },
         "CONN_MAX_AGE": 60,  # الحد من الاتصالات الخاملة (بالثواني)
         "DISABLE_SERVER_SIDE_CURSORS": True,  # هام جداً مع PgBouncer transaction mode
         }
     }
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+# else:
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.sqlite3",
+#             "NAME": BASE_DIR / "db.sqlite3",
+#         }
+#     }
 
 AUTH_USER_MODEL = "accounts.User"
 
@@ -85,6 +85,7 @@ TIME_ZONE = "Asia/Riyadh"
 USE_I18N = True
 USE_TZ = True
 
+STATIC_ROOT = BASE_DIR/ "staticfiles"
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
