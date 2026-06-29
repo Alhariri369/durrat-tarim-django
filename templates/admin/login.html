@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-[70vh] flex items-center justify-center px-4 py-12">
+    <div class="w-full max-w-[450px] bg-bg-sub border border-accent/20 shadow-2xl rounded-3xl overflow-hidden">
+
+        <div class="pt-10 pb-6 text-center">
+            <h2 class="text-3xl font-black text-primary mb-2">تسجيل الدخول للإدارة</h2>
+            <p class="text-gray-500 dark:text-gray-400">لوحة تحكم درة تريم</p>
+        </div>
+
+        <div class="px-8 pb-10 md:px-12 md:pb-12">
+            {% if error %}
+            <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm rounded-xl flex items-center gap-2">
+                <span>⚠️</span> {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="/admin/login" method="post" class="space-y-6">
+                {% csrf_token %}
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 ms-1">
+                        اسم المستخدم
+                    </label>
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           required
+                           class="w-full px-4 py-3 bg-transparent border-2 border-accent/30 rounded-2xl text-gray-900 dark:text-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                           placeholder="أدخل اسم المستخدم">
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 ms-1">
+                        كلمة المرور
+                    </label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           required
+                           class="w-full px-4 py-3 bg-transparent border-2 border-accent/30 rounded-2xl text-gray-900 dark:text-white focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                           placeholder="••••••••">
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit"
+                            class="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold text-lg rounded-full shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                        دخول
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 text-center">
+                <a href="/" class="text-sm text-accent hover:underline opacity-70 hover:opacity-100 transition-opacity">
+                    ← العودة للمتجر
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

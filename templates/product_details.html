@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ product.name }} | درة تريم
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto py-5 px-4">
+    <div class="flex flex-wrap items-center mb-5">
+        <div class="w-full md:w-1/2 text-center md:text-start">
+            <h1 class="font-bold text-accent text-4xl mb-2">{{ product.name }}</h1>
+
+            <p class="text-xl text-secondary/60 mb-3">{{ product.type }}</p>
+
+            <h2 class="text-accent text-3xl mb-4">{{ product.price }} ر.س</h2>
+
+            <p class="text-lg mb-8 text-secondary/80">{{ product.description|default:"لا يوجد وصف متاح لهذا المنتج." }}</p>
+
+            <button class="px-10 py-3 bg-primary text-background font-bold rounded-full transition-opacity hover:opacity-90">
+                إضافة إلى السلة
+            </button>
+        </div>
+
+        <div class="w-full md:w-1/2 mt-4 mt-md-0">
+            {% if product.img_url %}
+            <img src="{{ product.img_url }}"
+                 class="max-w-full h-auto rounded shadow-sm border border-accent w-full object-cover"
+                 style="max-height: 600px;" alt="{{ product.name }}">
+            {% else %}
+            <div class="rounded shadow-sm border border-accent w-full bg-surface flex items-center justify-center"
+                 style="height: 600px;">
+                <span class="text-secondary/40 text-xl">الصورة غير متوفرة</span>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

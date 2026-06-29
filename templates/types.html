@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-12 px-4">
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-accent mb-2">تصنيفات الأزياء</h1>
+        <p class="text-secondary/60 text-xl font-medium">تصفحي مجموعاتنا المختلفة واختاري ما يناسب ذوقك الرفيع</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for type_name in types %}
+        <div>
+            <a href="/products/types/{{ type_name }}" class="block group h-full">
+                <div class="h-full bg-surface shadow-sm border-b-4 border-accent rounded-xl text-center py-16 transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
+                    <div class="px-6">
+                        <h2 class="text-2xl font-bold text-accent mb-0 group-hover:text-primary transition-colors">
+                            {{ type_name }}
+                        </h2>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-20 border-2 border-dashed border-secondary/10 rounded-2xl">
+            <p class="text-secondary/40 text-xl font-medium">لا توجد تصنيفات حاليا.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

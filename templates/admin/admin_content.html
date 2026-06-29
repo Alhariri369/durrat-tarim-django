@@ -1,0 +1,61 @@
+<nav class="sticky top-0 z-40 w-full border-b border-accent/20 bg-background/90 backdrop-blur-sm">
+    <div class="px-4 lg:px-6 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="/admin" class="text-xl font-bold text-primary font-tajawal">إدارة درة تريم</a>
+
+            <div class="hidden md:flex items-center gap-6 ms-8">
+                <a href="/admin" class="text-secondary/80 hover:text-accent transition-colors">الرئيسية</a>
+                <a href="/admin/products" class="text-secondary/80 hover:text-accent transition-colors">المنتجات</a>
+                <a href="/admin/settings" class="text-secondary/80 hover:text-accent transition-colors">لوحة الألوان</a>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <span class="hidden sm:inline text-sm text-secondary/60">مرحبا، {{ admin_user }}</span>
+
+            <button id="theme-toggle" class="p-2 rounded-lg border border-secondary/20 hover:bg-surface transition-all text-sm text-secondary">
+                🌙 الوضع الداكن
+            </button>
+
+            <a href="/" target="_blank" class="px-3 py-1.5 text-sm border border-accent text-accent rounded-md hover:bg-accent hover:text-background transition-all">
+                عرض الموقع
+            </a>
+
+            <a href="/admin/logout" class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                خروج
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="flex min-h-[calc(100vh-64px)]">
+
+    <aside class="hidden md:block w-64 lg:w-72 border-e border-secondary/10 bg-surface shadow-sm">
+        <div class="sticky top-16 p-6 h-full">
+            <ul class="flex flex-col gap-2 text-lg">
+                <li>
+                    <a href="/admin" class="flex items-center gap-3 p-3 rounded-xl hover:bg-accent/10 text-primary transition-all font-bold">
+                        <span>📊</span> لوحة القيادة
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/products" class="flex items-center gap-3 p-3 rounded-xl hover:bg-accent/10 text-primary transition-all font-bold">
+                        <span>👗</span> إدارة المنتجات
+                    </a>
+                </li>
+                <li>
+                    <a href="/admin/settings" class="flex items-center gap-3 p-3 rounded-xl hover:bg-accent/10 text-primary transition-all font-bold">
+                        <span>🎨</span> إعدادات المظهر
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
+
+    <main class="flex-grow p-6 lg:p-10 bg-background">
+        <div class="max-w-7xl mx-auto">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+</div>

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-12 px-4">
+    <div class="flex flex-col md:flex-row justify-between items-center mb-12 border-b-2 border-accent/20 pb-6 gap-6">
+        <div class="text-center md:text-right">
+            <h1 class="text-4xl md:text-5xl font-black text-primary font-tajawal m-0">
+                {{ type_name }}
+            </h1>
+            <p class="text-secondary/60 mt-3 font-medium text-lg">تصفحي جميع المنتجات في هذا التصنيف</p>
+        </div>
+
+        <a href="/products/types" class="px-8 py-2 border-2 border-secondary/20 text-secondary hover:bg-secondary/5 rounded-full font-bold transition-all flex items-center gap-2 group">
+            <span class="group-hover:translate-x-1 transition-transform">←</span>
+            <span>العودة للتصنيفات</span>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {% for product in products %}
+        <div class="group flex flex-col h-full bg-surface rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 overflow-hidden border border-secondary/5">
+
+            <div class="relative aspect-[4/5] overflow-hidden bg-background">
+                {% if product.img_url %}
+                <img src="{{ product.img_url }}"
+                     alt="{{ product.name }}"
+                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                {% else %}
+                <div class="flex items-center justify-center h-full bg-secondary/5">
+                    <span class="text-secondary/30 font-bold italic">لا توجد صورة</span>
+                </div>
+                {% endif %}
+
+                <div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </div>
+
+            <div class="p-6 flex flex-col flex-grow text-center">
+                <h5 class="text-xl font-bold text-secondary mb-2 group-hover:text-primary transition-colors">
+                    {{ product.name }}
+                </h5>
+                <p class="text-2xl font-black text-accent mb-6">
+                    {{ product.price }} <span class="text-sm font-bold">ر.س</span>
+                </p>
+
+                <a href="/products/items/{{ product.id }}"
+                   class="mt-auto px-6 py-3 border-2 border-accent text-accent hover:bg-accent hover:text-background font-bold rounded-xl transition-all duration-300">
+                    التفاصيل
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-32 text-center border-4 border-dashed border-secondary/5 rounded-[3rem]">
+            <p class="text-2xl text-secondary/30 font-bold italic">لا توجد منتجات في هذا التصنيف حاليا.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

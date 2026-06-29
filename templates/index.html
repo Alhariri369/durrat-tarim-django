@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-12 text-center lg:text-start">
+    <div class="container mx-auto px-6 py-12 border border-accent/30 rounded-2xl shadow-sm bg-surface/75">
+        <div class="flex flex-col lg:flex-row items-center gap-12">
+            <div class="lg:w-1/2">
+                <h1 class="text-4xl md:text-6xl font-bold mb-10 text-primary">درة تريم</h1>
+                <p class="text-lg md:text-xl text-secondary/80 mb-8 leading-relaxed ml-5">
+                    اكتشفي أحدث تشكيلات الفساتين العربية، والعبايات، والأزياء الراقية المصممة لتتألقي في كل مناسبة.
+                </p>
+                <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
+                    <a href="/products/search?product_desc="
+                       class="px-8 py-3 bg-primary text-background hover:opacity-90 font-bold rounded-full transition-colors duration-200">
+                        تسوقي الآن
+                    </a>
+                    <a href="/products/types"
+                       class="px-8 py-3 border-2 border-secondary/20 hover:bg-secondary/5 text-secondary font-bold rounded-full transition-all duration-200">
+                        تصفح التصنيفات
+                    </a>
+                </div>
+            </div>
+
+            <div class="lg:w-1/2 flex justify-center">
+                <div class="w-64 h-64 md:w-80 md:h-80 border-2 border-accent/30 rounded-full flex items-center justify-center bg-background shadow-inner">
+                    <span class="text-7xl md:text-9xl">✨</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container mx-auto px-6 py-16">
+    <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-primary mb-2">أحدث المنتجات</h2>
+        <p class="text-secondary/60">تشكيلة مختارة من أرقى التصاميم</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {% for product in products %}
+        <div class="group flex flex-col h-full bg-surface rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-secondary/10">
+            <div class="relative aspect-[3/4] overflow-hidden bg-background">
+                {% if product.img_url %}
+                <img src="{{ product.img_url }}"
+                     alt="{{ product.name }}"
+                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                {% else %}
+                <div class="flex items-center justify-center h-full">
+                    <span class="text-secondary/30">لا توجد صورة</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="p-6 flex flex-col flex-grow text-center">
+                <h3 class="text-lg font-bold text-secondary mb-2">{{ product.name }}</h3>
+                <p class="text-xl font-semibold text-accent mb-6">
+                    {{ product.price }} ر.س
+                </p>
+                <a href="/products/items/{{ product.id }}"
+                   class="mt-auto px-6 py-2 border border-accent text-accent hover:bg-accent hover:text-background font-bold rounded-full transition-all duration-200">
+                    التفاصيل
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full py-20 text-center">
+            <p class="text-xl text-secondary/40">لا توجد منتجات حاليا.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-12">
+        <a href="/products/search?product_desc="
+           class="inline-block px-12 py-3 bg-secondary text-surface font-bold rounded-full hover:opacity-90 transition-opacity">
+            عرض كل المنتجات
+        </a>
+    </div>
+</section>
+{% endblock %}

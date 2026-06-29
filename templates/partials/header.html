@@ -1,0 +1,78 @@
+<nav class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-secondary/10">
+    <div class="container mx-auto px-4 lg:px-8">
+        <div class="flex items-center justify-between h-20">
+            <a href="/" class="text-2xl md:text-3xl font-bold text-primary hover:opacity-80 transition-all">
+                درة تريم
+            </a>
+
+            <div class="flex items-center gap-4 lg:hidden">
+                <a href="/cart" class="relative p-2 text-secondary hover:bg-secondary/10 rounded-lg transition-colors" aria-label="السلة">
+                    <!-- أيقونة السلة -->
+                </a>
+                <button type="button"
+                        onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
+                        class="p-2 text-secondary hover:bg-secondary/10 rounded-lg transition-colors"
+                        aria-label="القائمة">
+                    <!-- أيقونة القائمة -->
+                </button>
+            </div>
+
+            <div class="hidden lg:flex lg:items-center lg:gap-x-8">
+                <ul class="flex items-center gap-x-6 text-sm md:text-base font-medium">
+                    <li><a href="/" class="text-secondary/80 hover:text-primary transition-colors duration-200">الرئيسية</a></li>
+                    <li><a href="/products/types" class="text-secondary/80 hover:text-primary transition-colors duration-200">التصنيفات</a></li>
+                    <li><a href="/products/search?product_desc=" class="text-secondary/80 hover:text-primary transition-colors duration-200">المنتجات</a></li>
+                    <li><a href="/contact" class="text-secondary/80 hover:text-primary transition-colors duration-200">اتصل بنا</a></li>
+                </ul>
+
+                <div class="flex items-center gap-4">
+                    <a href="/cart" class="relative p-2 text-secondary hover:text-primary transition-colors group" aria-label="السلة">
+                        <!-- أيقونة السلة -->
+                        <span class="absolute top-0 right-0 block size-2 bg-accent rounded-full ring-2 ring-surface group-hover:ring-surface/50"></span>
+                    </a>
+
+                    <button id="theme-toggle" class="p-2 border border-secondary/20 rounded-full text-secondary hover:bg-secondary/5 transition-all" aria-label="تبديل الوضع">
+                        🌙
+                    </button>
+
+                    {% if is_store_admin %}
+                        <a href="/admin" class="px-4 py-2 bg-primary text-background text-sm font-bold rounded-full hover:opacity-90 transition-all">
+                            لوحة التحكم
+                        </a>
+                        <a href="/auth/logout" class="text-sm font-medium text-secondary/60 hover:text-red-500 transition-colors">
+                            خروج
+                        </a>
+                    {% else %}
+                        <a href="/auth/login" class="px-6 py-2 border-2 border-primary/20 hover:border-primary text-primary text-sm font-bold rounded-full transition-all">
+                            تسجيل الدخول
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden lg:hidden pb-6">
+            <ul class="flex flex-col gap-y-4 pt-2 text-center">
+                <li><a href="/" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">الرئيسية</a></li>
+                <li><a href="/products/types" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">التصنيفات</a></li>
+                <li><a href="/products/search?product_desc=" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">المنتجات</a></li>
+                <li><a href="/contact" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">اتصل بنا</a></li>
+
+                {% if is_store_admin %}
+                    <li><a href="/admin" class="block text-lg py-2 border-b border-secondary/5 text-primary font-bold">لوحة التحكم</a></li>
+                {% endif %}
+                {% if is_store_authenticated %}
+                    <li><a href="/auth/logout" class="block text-lg py-2 text-red-500">تسجيل الخروج</a></li>
+                {% else %}
+                    <li><a href="/auth/login" class="block text-lg py-2 text-primary font-bold">تسجيل الدخول</a></li>
+                {% endif %}
+
+                <li>
+                    <button id="theme-toggle-mobile" class="w-full text-center py-3 bg-background border border-secondary/10 text-secondary rounded-xl mt-2 font-bold hover:bg-secondary/5 transition-colors">
+                        <span>الوضع الداكن</span>
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

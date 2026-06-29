@@ -1,0 +1,34 @@
+﻿{% load static %}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="{% static 'css/output.css' %}">
+
+{% if site_settings %}
+    <style>
+        :root {
+            --color-primary: {{ site_settings.light_color_primary|default:"#0c1927" }};
+            --color-secondary: {{ site_settings.light_color_secondary|default:"#08121b" }};
+            --color-accent: {{ site_settings.light_color_accent|default:"#e0801f" }};
+            --color-background: {{ site_settings.light_color_background|default:"#f6f1ee" }}; 
+            --color-surface: {{ site_settings.light_color_surface|default:"#ffffff" }}; 
+        }
+
+        html.dark {
+            --color-primary: {{ site_settings.dark_color_primary|default:"#39f2f9" }};
+            --color-secondary: {{ site_settings.dark_color_secondary|default:"#e0ebe7" }}; 
+            --color-accent: {{ site_settings.dark_color_accent|default:"#e7994b" }};
+            --color-background: {{ site_settings.dark_color_background|default:"#08121b" }}; 
+            --color-surface: {{ site_settings.dark_color_surface|default:"#0c1927" }}; 
+        }
+        
+        body {
+            background-color: var(--color-background);
+            color: var(--color-secondary);
+        }
+    </style>
+{% endif %}

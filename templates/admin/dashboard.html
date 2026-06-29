@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+
+<div class="flex items-center justify-between mb-8 border-b border-accent/20 pb-4">
+    <h1 class="text-2xl font-bold text-primary">نظرة عامة</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <div class="card">
+        <h3 class="card-title">إجمالي المنتجات</h3>
+        <p class="card-value">{{ total_products }}</p>
+
+        <a href="/admin/products" class="btn-outline mt-4">
+            إدارة المنتجات
+        </a>
+    </div>
+
+    <div class="card">
+        <h3 class="card-title">التصنيفات المتاحة</h3>
+        <p class="card-value">{{ total_types }}</p>
+
+        <p class="text-sm text-gray-500 mt-3">
+            يتم تجميعها تلقائيا من المنتجات
+        </p>
+    </div>
+
+    <div class="card">
+        <h3 class="card-title">لغة الموقع والاتجاه</h3>
+
+        <p class="text-xl font-bold text-accent mt-2">
+            العربية (من اليمين إلى اليسار)
+        </p>
+
+        <span class="badge mt-4">
+            فعال
+        </span>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto py-12 px-4">
+    <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-6xl font-black text-primary font-tajawal mb-4">تواصلي معنا</h1>
+        <div class="h-1 w-24 bg-accent mx-auto rounded-full opacity-40 mb-6"></div>
+        <p class="text-secondary/60 text-lg md:text-xl max-w-2xl mx-auto">
+            نحن هنا لمساعدتك في اختيار الإطلالة المثالية. لا تترددي في التواصل معنا لأي استفسار.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div class="bg-surface rounded-[2.5rem] p-8 md:p-12 shadow-xl border border-secondary/5 relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-accent/5 rounded-full"></div>
+
+            <h2 class="text-2xl font-bold text-secondary mb-10 font-tajawal">معلومات التواصل</h2>
+
+            <div class="space-y-8">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center shrink-0 text-accent text-xl">📍</div>
+                    <div>
+                        <h4 class="font-bold text-secondary">الموقع</h4>
+                        <p class="text-secondary/60 leading-relaxed">حضرموت، تريم - xxxxxxxx<br>بجانب yyyyyy</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center shrink-0 text-accent text-xl">📱</div>
+                    <div>
+                        <h4 class="font-bold text-secondary">واتساب</h4>
+                        <p class="text-secondary/60 font-mono" dir="ltr">+967 77X XXX XXX</p>
+                    </div>
+                </div>
+
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 bg-accent/10 rounded-2xl flex items-center justify-center shrink-0 text-accent text-xl">⏰</div>
+                    <div class="text-secondary/60 space-y-1">
+                        <h4 class="font-bold text-secondary mb-2">أوقات العمل</h4>
+                        <div class="flex justify-between gap-8 border-b border-secondary/5 pb-1">
+                            <span>السبت - الخميس</span>
+                            <span class="font-bold">9:00 ص - 9:30 م</span>
+                        </div>
+                        <div class="flex justify-between gap-8">
+                            <span>الجمعة</span>
+                            <span class="font-bold">4:00 م - 10:00 م</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 rounded-3xl overflow-hidden border-4 border-background shadow-inner h-64 relative group">
+                <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3839.227361623842!2d48.9772408!3d16.053167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTbCsDAzJzExLjQiTiA0OMKwNTgnMzguMSJF!5e0!3m2!1sen!2sye!4v1700000000000"
+                    class="w-full h-full border-0 grayscale group-hover:grayscale-0 transition-all duration-700"
+                    allowfullscreen="" loading="lazy">
+                </iframe>
+            </div>
+        </div>
+
+        <div class="p-4 md:p-8">
+            {% if success %}
+            <div class="mb-8 p-4 bg-primary/10 border-r-4 border-primary text-primary rounded-xl font-bold animate-pulse">
+                {{ success }}
+            </div>
+            {% endif %}
+            <form action="/contact" method="POST" class="space-y-6">
+                {% csrf_token %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-secondary/70 mr-2">الاسم بالكامل</label>
+                        <input type="text" name="name" placeholder="أدخلي اسمك الكريم" required
+                            class="w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary placeholder:text-secondary/20">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm font-bold text-secondary/70 mr-2">رقم الجوال</label>
+                        <input type="tel" name="phone" placeholder="05X XXX XXXX" required
+                            class="w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary placeholder:text-secondary/20" dir="ltr">
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-secondary/70 mr-2">الموضوع</label>
+                    <input type="text" name="subject" placeholder="عن ماذا تودين الاستفسار؟"
+                        class="w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary placeholder:text-secondary/20">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-secondary/70 mr-2">رسالتك</label>
+                    <textarea name="message" rows="5" required placeholder="اكتبي استفسارك هنا..."
+                        class="w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary resize-none placeholder:text-secondary/20"></textarea>
+                </div>
+
+                <button type="submit"
+                    class="w-full py-5 bg-primary text-background font-black text-xl rounded-2xl shadow-xl shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all duration-300">
+                    إرسال الرسالة
+                </button>
+            </form>
+
+            <p class="mt-8 text-center text-secondary/40 text-sm font-medium">
+                سنقوم بالرد عليك خلال 24 ساعة عمل.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

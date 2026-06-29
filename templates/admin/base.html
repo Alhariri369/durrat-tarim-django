@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    {% include 'partials/head.html' %}
+    <title>لوحة التحكم | {% block admin_title %}{% endblock %}</title>
+</head>
+<body class="bg-background font-tajawal text-secondary antialiased">
+
+    {% include 'admin/header.html'%}
+
+<div class="flex min-h-[calc(100vh-76px)]">
+
+    <!-- {% include 'admin/aside.html'%} -->
+
+    <main class="grow p-6 lg:p-10 bg-background">
+        <div class="max-w-7xl mx-auto">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+</div>
+{% include 'partials/footer.html'%}
+{% include 'partials/js_imports.html'%}
+</body>
+</html>
