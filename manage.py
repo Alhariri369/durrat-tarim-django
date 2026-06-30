@@ -4,9 +4,9 @@ import os
 import sys
 import dotenv
 
-dotenv.load_dotenv()
 
 def main() -> None:
+    dotenv.load_dotenv()
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "durrat_tarim.settings")
     from django.core.management import execute_from_command_line
 

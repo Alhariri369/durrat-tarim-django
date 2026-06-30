@@ -1,14 +1,18 @@
 from pathlib import Path
 import os
 
-
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or os.getenv("JWT_SECRET")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("DJANGO_SECRET_KEY or JWT_SECRET must be set")
+
 DEBUG = os.getenv("DJANGO_DEBUG","False") == "True"
 ALLOWED_HOSTS = [
-    ".vercel.app"
+    ".vercel.app", 
+    "127.0.0.1", 
+    "localhost"
 ]
 
 INSTALLED_APPS = [
@@ -31,6 +35,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "durrat_tarim.urls"
@@ -54,29 +59,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "durrat_tarim.wsgi.application"
 
-if all(os.getenv(key) for key in ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_SERVER", "POSTGRES_DB"]):
-    DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("POSTGRES_DB"),
-        "USER": os.getenv("POSTGRES_USER"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-        "HOST": os.getenv("POSTGRES_SERVER"),
-        "PORT": os.getenv("POSTGRES_PORT", "5432"),
-        "OPTIONS": {
-            "sslmode": os.getenv("POSTGRES_SSLMODE", "prefer"),
-        },
-        "CONN_MAX_AGE": 60,  # الحد من الاتصالات الخاملة (بالثواني)
-        "DISABLE_SERVER_SIDE_CURSORS": True,  # هام جداً مع PgBouncer transaction mode
-        }
+# if all(os.getenv(key) for key in ["POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_HOST", "POSTGRES_DB"]):
+
+DATABASES = {
+"default": {
+    "ENGINE": "django.db.backends.postgresql",
+    "NAME": os.getenv("POSTGRES_DB"),
+    "USER": os.getenv("POSTGRES_USER"),
+    "HOST": os.getenv("POSTGRES_HOST"),
+    "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+    "PORT": os.getenv("POSTGRES_PORT"),
     }
+}
 # else:
-#     DATABASES = {
-#         "default": {
-#             "ENGINE": "django.db.backends.sqlite3",
-#             "NAME": BASE_DIR / "db.sqlite3",
-#         }
-#     }
+#     raise RuntimeError("Database environment variables are missing")
+
 
 AUTH_USER_MODEL = "accounts.User"
 
