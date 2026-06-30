@@ -90,6 +90,7 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
+WHITENOISE_USE_FINDERS = True
 
 MEDIA_URL = os.getenv("MEDIA_URL", "/uploads/")
 MEDIA_ROOT = Path(
