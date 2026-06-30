@@ -12,12 +12,12 @@
     ],
     "routes": [
         {
-            "src": "/(.*)",
-            "dest": "durrat_tarim/wsgi.py"
+            "src": "/static/(.*)",
+            "dest": "/static/$1"
         },
         {
-            "src":"/static/(.*)",
-            "dest": "static/$1"
-        }   
+            "src": "/(.*)",
+            "dest": "durrat_tarim/wsgi.py"
+        }
     ]
 }

@@ -1,16 +1,22 @@
-from pathlib import Path
+import os
+import tempfile
 import uuid
+from pathlib import Path
+from urllib import error, request
 
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_http_methods
 
 from accounts.models import User
 from accounts.views import _authenticate
 from .models import Product, SiteSettings
 from .utils import normalize_arabic
+
+
+DEFAULT_SUPABASE_STORAGE_BUCKET = "product-images"
 
 
 def _pagination(request):
@@ -115,12 +121,62 @@ def _save_product_image(image):
 
     suffix = Path(image.name).suffix or ".jpg"
     filename = f"{uuid.uuid4().hex}{suffix}"
-    upload_dir = settings.MEDIA_ROOT / "products"
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    storage_path = f"products/{filename}"
+    content = b"".join(image.chunks())
+
+    supabase_url = os.getenv("SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY")
+    if supabase_url and supabase_key:
+        return _upload_product_image_to_supabase(
+            storage_path=storage_path,
+            content=content,
+            content_type=getattr(image, "content_type", None) or "application/octet-stream",
+            supabase_url=supabase_url.rstrip("/"),
+            supabase_key=supabase_key,
+        )
+
+    upload_dir = _writable_upload_dir()
     with (upload_dir / filename).open("wb+") as destination:
-        for chunk in image.chunks():
-            destination.write(chunk)
+        destination.write(content)
     return f"{settings.MEDIA_URL}products/{filename}"
+
+
+def _upload_product_image_to_supabase(storage_path, content, content_type, supabase_url, supabase_key):
+    bucket = os.getenv("SUPABASE_STORAGE_BUCKET", DEFAULT_SUPABASE_STORAGE_BUCKET)
+    upload_url = f"{supabase_url}/storage/v1/object/{bucket}/{storage_path}"
+    upload_request = request.Request(
+        upload_url,
+        data=content,
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {supabase_key}",
+            "apikey": supabase_key,
+            "Content-Type": content_type,
+            "x-upsert": "true",
+        },
+    )
+    try:
+        with request.urlopen(upload_request, timeout=15):
+            pass
+    except error.URLError as exc:
+        raise RuntimeError("Unable to upload product image to Supabase Storage") from exc
+
+    public_base_url = os.getenv(
+        "PRODUCT_IMAGE_BASE_URL",
+        f"{supabase_url}/storage/v1/object/public/{bucket}",
+    )
+    return f"{public_base_url.rstrip('/')}/{storage_path}"
+
+
+def _writable_upload_dir():
+    upload_dir = settings.MEDIA_ROOT / "products"
+    try:
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        return upload_dir
+    except OSError:
+        fallback_dir = Path(tempfile.gettempdir()) / "uploads" / "products"
+        fallback_dir.mkdir(parents=True, exist_ok=True)
+        return fallback_dir
 
 
 @require_http_methods(["GET", "POST"])

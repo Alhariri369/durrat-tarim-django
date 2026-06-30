@@ -1,12 +1,8 @@
 #!/bin/bash
 
-#install dependancies
+# Install dependencies
 pip install setuptools
 pip install -r requirements.txt
 
-# Run django Commands
-python manage.py makemigrations
-python manage.py 
-python manage.py tailwind install
-python manage.py collectstatic
-python manage.py tailwind start
+# Collect committed static assets for WhiteNoise/Vercel.
+python manage.py collectstatic --noinput
