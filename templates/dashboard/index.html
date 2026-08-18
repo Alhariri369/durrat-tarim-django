@@ -1,0 +1,108 @@
+{% extends "base.html" %} {% block content %}
+
+<div
+    class="flex items-center justify-between mb-8 border-b border-accent/20 pb-4"
+>
+    <h1 class="text-2xl font-bold text-primary">لوحة التحكم</h1>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-sm font-bold text-secondary/60 mb-2">
+            إجمالي المنتجات
+        </h3>
+        <p class="text-3xl font-black text-primary">{{ total_products }}</p>
+        <a
+            href="{% url 'admin:catalog_product_changelist' %}"
+            class="inline-block mt-4 text-sm text-accent hover:underline font-bold"
+        >
+            إدارة المنتجات ←
+        </a>
+    </div>
+
+    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-sm font-bold text-secondary/60 mb-2">التصنيفات</h3>
+        <p class="text-3xl font-black text-primary">{{ total_categories }}</p>
+        <a
+            href="{% url 'admin:catalog_category_changelist' %}"
+            class="inline-block mt-4 text-sm text-accent hover:underline font-bold"
+        >
+            إدارة التصنيفات ←
+        </a>
+    </div>
+
+    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-sm font-bold text-secondary/60 mb-2">إجمالي التذاكر</h3>
+        <p class="text-3xl font-black text-primary">{{ total_tickets }}</p>
+        <a
+            href="{% url 'admin:support_ticket_changelist' %}"
+            class="inline-block mt-4 text-sm text-accent hover:underline font-bold"
+        >
+            إدارة التذاكر ←
+        </a>
+    </div>
+
+    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-sm font-bold text-secondary/60 mb-2">تذاكر معلقة</h3>
+        <p class="text-3xl font-black text-red-500">{{ pending_tickets }}</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-primary mb-4">روابط سريعة</h3>
+        <ul class="space-y-3">
+            <li>
+                <a
+                    href="{% url 'admin:index' %}"
+                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
+                >
+                    <span>⚙️</span> لوحة إدارة Django
+                </a>
+            </li>
+            <li>
+                <a
+                    href="{% url 'admin:catalog_product_add' %}"
+                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
+                >
+                    <span>➕</span> إضافة منتج جديد
+                </a>
+            </li>
+            <li>
+                <a
+                    href="{% url 'admin:catalog_category_add' %}"
+                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
+                >
+                    <span>📁</span> إضافة تصنيف جديد
+                </a>
+            </li>
+            <li>
+                <a
+                    href="{% url 'admin:catalog_featuredproduct_changelist' %}"
+                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
+                >
+                    <span>⭐</span> المنتجات المميزة
+                </a>
+            </li>
+            <li>
+                <a
+                    href="{% url 'admin:catalog_storesettings_changelist' %}"
+                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
+                >
+                    <span>🎨</span> إعدادات الموقع
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-primary mb-4">معلومات</h3>
+        <p class="text-sm text-secondary/70">
+            استخدم لوحة إدارة Django لإدارة المنتجات، التصنيفات، المستخدمين،
+            الصلاحيات، والتذاكر.
+        </p>
+        <p class="text-sm text-secondary/50 mt-3">اللغة: العربية (RTL)</p>
+    </div>
+</div>
+
+{% endblock %}

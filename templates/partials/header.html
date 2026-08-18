@@ -1,78 +1,268 @@
-<nav class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md border-b border-secondary/10">
-    <div class="container mx-auto px-4 lg:px-8">
-        <div class="flex items-center justify-between h-20">
-            <a href="/" class="text-2xl md:text-3xl font-bold text-primary hover:opacity-80 transition-all">
-                درة تريم
+{% load static %}
+<header
+    data-header
+    class="fixed right-0 left-0 transition-all duration-500 top-0 z-50 w-full border-b-2 border-accent/15 bg-surface/90 backdrop-blur-subtle py-3 shadow-sm shadow-accent/5"
+>
+    <!-- Top accent line -->
+    <div
+        class="absolute inset-x-0 top-0 h-0.75 bg-linear-to-r from-accent/60 via-accent to-primary/40"
+    ></div>
+
+    <div
+        class="mx-auto flex max-w-7xl items-center justify-between px-4 lg:px-8"
+    >
+        <!-- Logo -->
+        <a
+            href="{% url 'home' %}"
+            class="group flex shrink-0 items-center gap-2.5 text-xl font-black text-primary transition-colors hover:text-accent md:text-3xl"
+            aria-label="درة تريم - الرئيسية"
+        >
+            <span
+                class="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 text-lg shadow-sm shadow-accent/10 transition-transform group-hover:scale-110 group-hover:shadow-accent/20 md:h-10 md:w-10"
+            >
+                👗
+                <img
+                    src="{% static 'images/logo.png' %}"
+                    alt=""
+                    loading="lazy"
+                    class="absolute inset-0 h-full w-full object-cover"
+                    onerror="this.remove()"
+                />
+            </span>
+            <span
+                class="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
+                >درة تريم</span
+            >
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav
+            class="hidden items-center gap-0.5 lg:flex"
+            aria-label="التنقل الرئيسي"
+        >
+            <a
+                href="{% url 'home' %}"
+                data-nav-link
+                class="rounded-xl px-4 py-2.5 text-sm font-bold text-secondary/70 transition-all duration-300 hover:bg-accent/10 hover:text-accent relative after:absolute after:bottom-1 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-accent after:transition-all hover:after:w-1/2"
+                >الرئيسية</a
+            >
+            <a
+                href="{% url 'product-types' %}"
+                data-nav-link
+                class="rounded-xl px-4 py-2.5 text-sm font-bold text-secondary/70 transition-all duration-300 hover:bg-accent/10 hover:text-accent relative after:absolute after:bottom-1 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-accent after:transition-all hover:after:w-1/2"
+                >التصنيفات</a
+            >
+            <a
+                href="{% url 'product-search' %}"
+                data-nav-link
+                class="rounded-xl px-4 py-2.5 text-sm font-bold text-secondary/70 transition-all duration-300 hover:bg-accent/10 hover:text-accent relative after:absolute after:bottom-1 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-accent after:transition-all hover:after:w-1/2"
+                >المنتجات</a
+            >
+            <a
+                href="{% url 'contact' %}"
+                data-nav-link
+                class="rounded-xl px-4 py-2.5 text-sm font-bold text-secondary/70 transition-all duration-300 hover:bg-accent/10 hover:text-accent relative after:absolute after:bottom-1 after:left-1/2 after:h-0.5 after:w-0 after:-translate-x-1/2 after:rounded-full after:bg-accent after:transition-all hover:after:w-1/2"
+                >اتصل بنا</a
+            >
+            {% if is_store_authenticated %}
+            <a
+                href="{% url 'favorites' %}"
+                data-nav-link
+                class="rounded-xl px-4 py-2.5 text-sm font-bold bg-rose-50 text-rose-600 transition-all duration-300 hover:bg-rose-100 flex items-center gap-1.5 shadow-sm shadow-rose-200/50"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-4 w-4"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                </svg>
+                المفضلة
             </a>
+            {% endif %}
+        </nav>
 
-            <div class="flex items-center gap-4 lg:hidden">
-                <a href="/cart" class="relative p-2 text-secondary hover:bg-secondary/10 rounded-lg transition-colors" aria-label="السلة">
-                    <!-- أيقونة السلة -->
-                </a>
-                <button type="button"
-                        onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
-                        class="p-2 text-secondary hover:bg-secondary/10 rounded-lg transition-colors"
-                        aria-label="القائمة">
-                    <!-- أيقونة القائمة -->
+        <!-- Desktop Actions -->
+        <div class="hidden items-center gap-2.5 lg:flex">
+            <!-- Search -->
+            <form
+                method="get"
+                action="{% url 'product-search' %}"
+                role="search"
+                class="relative flex"
+            >
+                <input
+                    id="header-search"
+                    type="search"
+                    name="q"
+                    value="{{ request.GET.q }}"
+                    placeholder="ابحثي عن منتج..."
+                    maxlength="100"
+                    class="w-36 rounded-2xl border-2 border-secondary/10 bg-background/80 py-2.5 pr-4 pl-10 text-sm font-medium transition-all focus:w-52 focus:border-accent focus:bg-background focus:outline-none focus:ring-4 focus:ring-accent/10"
+                />
+                <button
+                    type="submit"
+                    aria-label="بحث"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-secondary/40 transition-colors hover:text-accent"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                    </svg>
                 </button>
-            </div>
+            </form>
 
-            <div class="hidden lg:flex lg:items-center lg:gap-x-8">
-                <ul class="flex items-center gap-x-6 text-sm md:text-base font-medium">
-                    <li><a href="/" class="text-secondary/80 hover:text-primary transition-colors duration-200">الرئيسية</a></li>
-                    <li><a href="/products/types" class="text-secondary/80 hover:text-primary transition-colors duration-200">التصنيفات</a></li>
-                    <li><a href="/products/search?product_desc=" class="text-secondary/80 hover:text-primary transition-colors duration-200">المنتجات</a></li>
-                    <li><a href="/contact" class="text-secondary/80 hover:text-primary transition-colors duration-200">اتصل بنا</a></li>
-                </ul>
+            <!-- Theme Toggle -->
+            <button
+                id="theme-toggle"
+                type="button"
+                class="rounded-xl border-2 border-secondary/10 p-2.5 text-secondary/50 transition-all duration-300 hover:border-accent/40 hover:text-accent hover:bg-accent/5 hover:shadow-sm"
+                aria-label="تبديل الوضع"
+            >
+                🌙
+            </button>
 
-                <div class="flex items-center gap-4">
-                    <a href="/cart" class="relative p-2 text-secondary hover:text-primary transition-colors group" aria-label="السلة">
-                        <!-- أيقونة السلة -->
-                        <span class="absolute top-0 right-0 block size-2 bg-accent rounded-full ring-2 ring-surface group-hover:ring-surface/50"></span>
-                    </a>
-
-                    <button id="theme-toggle" class="p-2 border border-secondary/20 rounded-full text-secondary hover:bg-secondary/5 transition-all" aria-label="تبديل الوضع">
-                        🌙
-                    </button>
-
-                    {% if is_store_admin %}
-                        <a href="/admin" class="px-4 py-2 bg-primary text-background text-sm font-bold rounded-full hover:opacity-90 transition-all">
-                            لوحة التحكم
-                        </a>
-                        <a href="/auth/logout" class="text-sm font-medium text-secondary/60 hover:text-red-500 transition-colors">
-                            خروج
-                        </a>
-                    {% else %}
-                        <a href="/auth/login" class="px-6 py-2 border-2 border-primary/20 hover:border-primary text-primary text-sm font-bold rounded-full transition-all">
-                            تسجيل الدخول
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
+            <!-- Auth -->
+            {% if is_store_admin %}
+            <a
+                href="{% url 'dashboard' %}"
+                class="rounded-2xl bg-gradient-to-r from-primary to-primary/80 px-5 py-2.5 text-sm font-bold text-surface shadow-lg shadow-primary/20 transition-all hover:opacity-90 hover:shadow-xl hover:-translate-y-px"
+                >لوحة التحكم</a
+            >
+            {% endif %} {% if is_store_authenticated %}
+            <a
+                href="{% url 'account_logout' %}"
+                class="rounded-2xl border-2 border-secondary/15 px-5 py-2.5 text-sm font-bold text-secondary/55 transition-all hover:border-red-300 hover:text-red-500 hover:bg-red-50"
+                >خروج</a
+            >
+            {% else %}
+            <a
+                href="{% url 'account_login' %}"
+                class="rounded-2xl bg-gradient-to-r from-accent to-accent/80 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-accent/25 transition-all hover:shadow-xl hover:-translate-y-px active:scale-[0.98]"
+                >تسجيل الدخول</a
+            >
+            {% endif %}
         </div>
 
-        <div id="mobile-menu" class="hidden lg:hidden pb-6">
-            <ul class="flex flex-col gap-y-4 pt-2 text-center">
-                <li><a href="/" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">الرئيسية</a></li>
-                <li><a href="/products/types" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">التصنيفات</a></li>
-                <li><a href="/products/search?product_desc=" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">المنتجات</a></li>
-                <li><a href="/contact" class="block text-lg py-2 border-b border-secondary/5 text-secondary hover:text-primary transition-colors">اتصل بنا</a></li>
-
-                {% if is_store_admin %}
-                    <li><a href="/admin" class="block text-lg py-2 border-b border-secondary/5 text-primary font-bold">لوحة التحكم</a></li>
-                {% endif %}
-                {% if is_store_authenticated %}
-                    <li><a href="/auth/logout" class="block text-lg py-2 text-red-500">تسجيل الخروج</a></li>
-                {% else %}
-                    <li><a href="/auth/login" class="block text-lg py-2 text-primary font-bold">تسجيل الدخول</a></li>
-                {% endif %}
-
-                <li>
-                    <button id="theme-toggle-mobile" class="w-full text-center py-3 bg-background border border-secondary/10 text-secondary rounded-xl mt-2 font-bold hover:bg-secondary/5 transition-colors">
-                        <span>الوضع الداكن</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
+        <!-- Mobile Hamburger -->
+        <button
+            type="button"
+            data-mobile-toggle
+            class="flex items-center justify-center rounded-xl border-2 border-accent/15 p-2.5 text-accent lg:hidden transition-all hover:bg-accent/10 hover:shadow-sm"
+            aria-label="فتح القائمة"
+            aria-controls="mobile-menu"
+            aria-expanded="false"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M4 6h16M4 12h16M4 18h16"
+                />
+            </svg>
+        </button>
     </div>
-</nav>
+
+    <!-- Mobile Menu -->
+    <div
+        id="mobile-menu"
+        data-mobile-menu
+        class="hidden border-t-2 border-accent/10 bg-surface/98 backdrop-blur-subtle px-4 pb-8 pt-4 lg:hidden"
+    >
+        <form
+            method="get"
+            action="{% url 'product-search' %}"
+            role="search"
+            class="mb-6 flex"
+        >
+            <input
+                id="mobile-search"
+                name="q"
+                type="search"
+                placeholder="ابحثي عن منتج..."
+                maxlength="100"
+                class="min-w-0 grow rounded-2xl rounded-l-none border-2 border-secondary/15 bg-background/80 py-3 px-4 text-sm font-medium focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/10"
+            />
+            <button
+                class="rounded-2xl rounded-r-none bg-gradient-to-r from-accent to-accent/80 px-6 text-sm font-bold text-white shadow-md shadow-accent/20"
+            >
+                بحث
+            </button>
+        </form>
+
+        <nav class="grid gap-1" aria-label="التنقل الجوال">
+            <a
+                href="{% url 'home' %}"
+                class="rounded-xl py-3.5 px-4 text-sm font-bold text-secondary/70 transition-all hover:bg-accent/10 hover:text-accent active:scale-[0.98]"
+                >الرئيسية</a
+            >
+            <a
+                href="{% url 'product-types' %}"
+                class="rounded-xl py-3.5 px-4 text-sm font-bold text-secondary/70 transition-all hover:bg-accent/10 hover:text-accent active:scale-[0.98]"
+                >التصنيفات</a
+            >
+            <a
+                href="{% url 'product-search' %}"
+                class="rounded-xl py-3.5 px-4 text-sm font-bold text-secondary/70 transition-all hover:bg-accent/10 hover:text-accent active:scale-[0.98]"
+                >المنتجات</a
+            >
+            <a
+                href="{% url 'contact' %}"
+                class="rounded-xl py-3.5 px-4 text-sm font-bold text-secondary/70 transition-all hover:bg-accent/10 hover:text-accent active:scale-[0.98]"
+                >اتصل بنا</a
+            >
+            {% if is_store_authenticated %}
+            <a
+                href="{% url 'favorites' %}"
+                class="rounded-xl py-3.5 px-4 text-sm font-bold text-rose-600 bg-rose-50 transition-all hover:bg-rose-100 active:scale-[0.98]"
+                >❤️ المفضلة</a
+            >
+            {% endif %}
+            <hr class="my-3 border-secondary/10" />
+
+            <button
+                id="theme-toggle-mobile"
+                type="button"
+                class="mx-auto mt-1 w-full rounded-2xl border-2 border-secondary/10 py-3.5 text-sm font-bold text-secondary/70 transition-all hover:border-accent/30 hover:text-accent hover:bg-accent/5"
+            >
+                🌙 الوضع الداكن
+            </button>
+
+            {% if is_store_admin %}
+            <a
+                href="{% url 'dashboard' %}"
+                class="mx-auto mt-1 w-full rounded-2xl bg-gradient-to-r from-primary to-primary/80 py-3.5 text-center text-sm font-bold text-surface shadow-lg shadow-primary/20 transition-all hover:opacity-90 active:scale-[0.98]"
+            >
+                لوحة التحكم
+            </a>
+            {% endif %}
+
+            <a
+                href="{{ account_action_url }}"
+                class="mx-auto mt-1 w-full rounded-2xl bg-gradient-to-r from-accent to-accent/80 py-3.5 text-center text-sm font-bold text-white shadow-lg shadow-accent/25 transition-all hover:opacity-90 active:scale-[0.98]"
+            >
+                {{ account_action_label }}
+            </a>
+        </nav>
+    </div>
+</header>

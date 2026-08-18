@@ -10,9 +10,12 @@ wheels/
 .venv
 
 # Local environment
+uploads/
 .env
-
+full_plan.md
+milestone*
+plans/
+staticFiles\
 # Node dependencies
 node_modules/
-
 .vercel

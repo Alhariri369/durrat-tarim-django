@@ -1,0 +1,301 @@
+/* ============================================================
+   Durrat Tarim – Premium Animation & Design System
+   ============================================================ */
+
+/* ---------- Design Tokens ---------- */
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-shadow: rgba(0, 0, 0, 0.06);
+  --glass-blur: 18px;
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-out-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ---------- Glassmorphism ---------- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 24px var(--glass-shadow);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.07);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 1.5rem;
+  transition: all 0.4s var(--ease-out-expo);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.75);
+  transform: translateY(-4px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.10);
+}
+
+/* Dark mode glass */
+html.dark .glass,
+html.dark .glass-card {
+  background: rgba(12, 25, 39, 0.6);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html.dark .glass-strong {
+  background: rgba(12, 25, 39, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html.dark .glass-card:hover {
+  background: rgba(12, 25, 39, 0.8);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+/* ---------- Gradient Backgrounds ---------- */
+.gradient-hero {
+  background: linear-gradient(135deg, #fdf2f8 0%, #fef7ed 30%, #fdf6f0 60%, #fdf2f0 100%);
+}
+
+.gradient-cta {
+  background: linear-gradient(135deg, #e0801f 0%, #c97a3b 40%, #8b5e3c 100%);
+}
+
+.gradient-soft {
+  background: linear-gradient(180deg, transparent 0%, rgba(224, 128, 31, 0.04) 100%);
+}
+
+.gradient-shimmer {
+  background: linear-gradient(110deg, transparent 30%, rgba(224, 128, 31, 0.08) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Dark mode gradients */
+html.dark .gradient-hero {
+  background: linear-gradient(135deg, #0a1628 0%, #0c1927 30%, #0e1a2b 60%, #0a1628 100%);
+}
+
+html.dark .gradient-soft {
+  background: linear-gradient(180deg, transparent 0%, rgba(57, 242, 249, 0.03) 100%);
+}
+
+/* ---------- Keyframe Animations ---------- */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(224, 128, 31, 0.35); }
+  50% { box-shadow: 0 0 0 18px rgba(224, 128, 31, 0); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(224, 128, 31, 0.3); }
+  50% { border-color: rgba(224, 128, 31, 0.7); }
+}
+
+/* ---------- Scroll Reveal Classes ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+}
+
+.reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-up { transform: translateY(48px); }
+.reveal-left { transform: translateX(48px); }
+.reveal-right { transform: translateX(-48px); }
+.reveal-scale { transform: scale(0.9); }
+
+.reveal-up.revealed,
+.reveal-left.revealed,
+.reveal-right.revealed,
+.reveal-scale.revealed {
+  transform: translate(0) scale(1);
+}
+
+/* Stagger delays */
+.stagger-1 { transition-delay: 0.05s; }
+.stagger-2 { transition-delay: 0.1s; }
+.stagger-3 { transition-delay: 0.15s; }
+.stagger-4 { transition-delay: 0.2s; }
+.stagger-5 { transition-delay: 0.25s; }
+.stagger-6 { transition-delay: 0.3s; }
+.stagger-7 { transition-delay: 0.35s; }
+.stagger-8 { transition-delay: 0.4s; }
+
+/* ---------- Float Animation ---------- */
+.float-slow { animation: float 6s ease-in-out infinite; }
+.float-medium { animation: float 4s ease-in-out infinite; }
+.float-fast { animation: float 2.5s ease-in-out infinite; }
+
+/* ---------- Pulse Ring (for CTA buttons) ---------- */
+.pulse-ring {
+  animation: pulse-soft 2.5s ease-out infinite;
+}
+
+/* ---------- Hover Effects ---------- */
+.hover-lift {
+  transition: transform 0.35s var(--ease-out-expo), box-shadow 0.35s var(--ease-out-expo);
+}
+
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.12);
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 30px rgba(224, 128, 31, 0.2);
+  border-color: rgba(224, 128, 31, 0.5);
+}
+
+.img-zoom {
+  overflow: hidden;
+}
+
+.img-zoom img {
+  transition: transform 0.7s var(--ease-out-expo);
+}
+
+.img-zoom:hover img {
+  transform: scale(1.08);
+}
+
+/* ---------- Marquee / Ticker ---------- */
+.marquee-track {
+  display: flex;
+  animation: marquee 30s linear infinite;
+  width: max-content;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* ---------- Backdrop Blur Utility ---------- */
+.backdrop-blur-subtle {
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+}
+
+/* ---------- Custom Scrollbar ---------- */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(224, 128, 31, 0.25);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(224, 128, 31, 0.45);
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(57, 242, 249, 0.2);
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(57, 242, 249, 0.4);
+}
+
+/* ---------- Selection ---------- */
+::selection {
+  background: rgba(224, 128, 31, 0.2);
+  color: inherit;
+}
+
+html.dark ::selection {
+  background: rgba(57, 242, 249, 0.2);
+}
+
+/* ---------- Reduce Motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.revealed {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .float-slow,
+  .float-medium,
+  .float-fast,
+  .marquee-track {
+    animation: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- Responsive Adjustments ---------- */
+@media (max-width: 768px) {
+  .reveal {
+    transform: translateY(24px);
+  }
+  .reveal-up { transform: translateY(32px); }
+  .reveal-left { transform: translateX(24px); }
+  .reveal-right { transform: translateX(-24px); }
+}

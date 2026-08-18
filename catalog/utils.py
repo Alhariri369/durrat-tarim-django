@@ -11,5 +11,5 @@ def normalize_arabic(text: str | None) -> str:
     text = re.sub("[إأآا]", "ا", text)
     text = re.sub("ة", "ه", text)
     text = re.sub("ى", "ي", text)
-    text = re.sub("ك", "ك", text)
+    text = re.sub("ک", "ك", text)
     return text.lower()

@@ -4,5 +4,6 @@
 pip install setuptools
 pip install -r requirements.txt
 
-# Collect committed static assets for WhiteNoise/Vercel.
-python manage.py collectstatic --noinput
+# Static files are served directly from STATIC_ROOT = static/
+# No collectstatic needed since source and root are consolidated.
+echo "Static files consolidated in static/ directory"

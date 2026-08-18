@@ -1,0 +1,22 @@
+<div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+    {% for product in products %}
+    <div class="reveal stagger-{{ forloop.counter }}">
+        {% include "catalog/partials/product_card.html" %}
+    </div>
+    {% empty %}
+    <div
+        class="col-span-full rounded-4xl border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+    >
+        <span class="text-5xl mb-4 block">🛍️</span>
+        <p class="text-xl font-bold text-secondary/50">
+            {{ empty_message|default:"لا توجد منتجات متاحة حالياً." }}
+        </p>
+        <a
+            href="{% url 'product-search' %}"
+            class="mt-4 inline-block text-sm font-bold text-accent hover:underline"
+        >
+            تصفحي جميع المنتجات
+        </a>
+    </div>
+    {% endfor %}
+</div>

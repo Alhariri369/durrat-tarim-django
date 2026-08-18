@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@source "../../templates/**/*.html";
+
+@theme {
+    --font-tajawal: "Tajawal", "sans-serif";
+    --font-cairo: "Cairo", "sans-serif";
+    --font-messiri: "El Messiri", "sans-serif";
+
+    /* Default fallback colors — overridden by CSS variables at runtime */
+    --color-primary: #30669c;
+    --color-secondary: #08121b;
+    --color-accent: #e0801f;
+    --color-background: #f6f1ee;
+    --color-surface: #ffffff;
+
+    /* Rose palette for favorites */
+    --color-rose-50: #fff1f2;
+    --color-rose-100: #ffe4e6;
+    --color-rose-150: #fecdd3;
+    --color-rose-200: #fecdd3;
+    --color-rose-300: #fda4af;
+    --color-rose-400: #fb7185;
+    --color-rose-500: #f43f5e;
+    --color-rose-600: #e11d48;
+}

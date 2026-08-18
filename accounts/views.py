@@ -1,103 +1,116 @@
+import logging
+
+from allauth.account.models import EmailAddress
 from django.contrib import messages
-from django.contrib.auth import login as django_login, logout as django_logout
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as django_login
+from django.contrib.auth import logout as django_logout
 from django.contrib.auth.password_validation import validate_password
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.core.validators import validate_email
+from django.db.transaction import Atomic
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
 from .models import User
+from .redirects import get_post_login_url
 
-# Number of failed login attempts allowed before throttling
+logger = logging.getLogger(__name__)
+
 MAX_LOGIN_ATTEMPTS = 5
-# Throttle reset time in seconds
-LOGIN_ATTEMPT_TIMEOUT = 300  # 5 minutes
+LOGIN_ATTEMPT_TIMEOUT = 300
 
 
-def _authenticate(identifier: str, password: str) -> User | None:
-    """
-    Authenticate using email or username (case-insensitive).
-    Uses Django's built-in password check which automatically
-    upgrades the hash if needed.
-    """
-    user = User.objects.filter(
-        Q(email__iexact=identifier) | Q(username__iexact=identifier)
-    ).first()
-
-    if user and user.is_active and user.check_password(password):
-        return user
+def _authenticate_user(email: str, password: str, request=None) -> User | None:
+    if not email:
+        return None
+    user = User.objects.filter(email__iexact=email).first()
+    if not user:
+        return None
+    authenticated_user = authenticate(request, username=user.email, password=password)
+    if authenticated_user and authenticated_user.is_active:
+        return authenticated_user
     return None
+
+
+def _create_account(request, email: str, password: str, full_name: str) -> User:
+    with Atomic(using=None, savepoint=True, durable=False):
+        user = User.objects.create_user(
+            email=email,
+            password=password,
+            full_name=full_name,
+        )
+        email_address = EmailAddress.objects.create(
+            user=user, email=user.email, primary=True, verified=False
+        )
+        email_address.send_confirmation(request, signup=True)
+        return user
 
 
 @require_http_methods(["GET", "POST"])
 def register(request):
+    if request.user.is_authenticated:
+        return redirect(get_post_login_url(request, request.user))
+
     if request.method == "GET":
         return render(request, "register.html")
 
     email = request.POST.get("email", "").strip()
-    password = request.POST.get("password", "")
-    password2 = request.POST.get("password2", "")
-    username = request.POST.get("username", "").strip()
-    full_name = request.POST.get("full_name", "").strip() or None
+    password = request.POST.get("password1") or request.POST.get("password", "")
+    password_confirmation = request.POST.get("password2", password)
+    full_name = request.POST.get("full_name", "").strip()
+    context = {"email": email, "full_name": full_name}
 
-    # Basic required field check
-    if not email or not password or not username:
-        return render(
-            request,
-            "register.html",
-            {"error": "All required fields must be filled."},
-            status=400,
-        )
+    if not email or not password or not full_name:
+        context["error"] = "All required fields must be filled."
+        return render(request, "register.html", context, status=400)
 
-    # Check that passwords match
-    if password != password2:
-        return render(
-            request,
-            "register.html",
-            {"error": "Passwords do not match."},
-            status=400,
-        )
-
-    # Validate password strength using Django's built-in validators
     try:
-        validate_password(password, user=None)
-    except ValidationError as e:
-        return render(
-            request,
-            "register.html",
-            {"error": e.messages},
-            status=400,
-        )
+        validate_email(email)
+    except ValidationError:
+        context["error"] = "Enter a valid email address."
+        return render(request, "register.html", context, status=400)
 
-    # Check for existing user
+    if password != password_confirmation:
+        context["error"] = "Passwords do not match."
+        return render(request, "register.html", context, status=400)
+
+    prospective_user = User(email=email, full_name=full_name)
+    try:
+        validate_password(password, user=prospective_user)
+    except ValidationError as exc:
+        context["error"] = " ".join(str(message) for message in exc.messages)
+        return render(request, "register.html", context, status=400)
+
     if User.objects.filter(email__iexact=email).exists():
-        return render(
-            request,
-            "register.html",
-            {"error": "User already exists."},
-            status=400,
-        )
+        context["error"] = "User already exists."
+        return render(request, "register.html", context, status=400)
 
-    # Create user and log them in
-    user = User.objects.create_user(
-        email=email, password=password, username=username, full_name=full_name
-    )
-    django_login(request, user)
-    return redirect("home")
+    try:
+        _create_account(request, email, password, full_name)
+    except Exception:
+        logger.exception("Unable to create account or send verification email")
+        context["error"] = "Unable to send the verification email. Please try again."
+        return render(request, "register.html", context, status=503)
+
+    messages.info(request, "تم إنشاء حسابك. يرجى التحقق من بريدك الإلكتروني للمتابعة.")
+    return redirect("account_email_verification_sent")
 
 
 @require_http_methods(["GET", "POST"])
 def login(request):
-    if request.method == "GET":
-        return render(request, "login.html")
+    if request.user.is_authenticated:
+        return redirect(get_post_login_url(request, request.user))
 
-    identifier = request.POST.get("email", "").strip()
+    if request.method == "GET":
+        return render(request, "login.html", {"next": request.GET.get("next", "")})
+
+    email = (request.POST.get("email") or request.POST.get("login", "")).strip()
     password = request.POST.get("password", "")
     client_ip = request.META.get("REMOTE_ADDR", "")
-    cache_key = f"login_attempts_{identifier}_{client_ip}"
+    cache_key = f"login_attempts_{email}_{client_ip}"
 
-    # Rate limiting: check number of failed attempts
     attempts = cache.get(cache_key, 0)
     if attempts >= MAX_LOGIN_ATTEMPTS:
         return render(
@@ -107,32 +120,33 @@ def login(request):
             status=429,
         )
 
-    user = _authenticate(identifier, password)
-
+    user = _authenticate_user(email, password, request=request)
     if not user:
-        # Increment failure counter
         cache.set(cache_key, attempts + 1, timeout=LOGIN_ATTEMPT_TIMEOUT)
         return render(
-            request,
-            "login.html",
-            {"error": "Invalid credentials."},
-            status=401,
+            request, "login.html", {"error": "Invalid credentials."}, status=401
         )
 
-    # Successful login: clear failure counter
     cache.delete(cache_key)
 
+    if not EmailAddress.objects.filter(user=user, verified=True).exists():
+        next_url = request.POST.get("next", "")
+        if next_url:
+            request.session["favorite_return_url"] = next_url
+        messages.error(
+            request, "يرجى توثيق بريدك الإلكتروني أولاً. تحقق من صندوق الوارد."
+        )
+        return redirect("account_email_verification_sent")
+
     django_login(request, user)
-    return redirect("home")
+    return redirect(get_post_login_url(request, user))
 
 
+@require_http_methods(["GET", "POST"])
 def logout(request):
-    # Place message BEFORE logout so it survives session flush
     messages.info(request, "Logged out.")
     django_logout(request)
-
     response = redirect("home")
-    # Delete custom cookies if they exist – ensure attributes match how they were set
     response.delete_cookie("user_session", path="/")
     response.delete_cookie("admin_session", path="/")
     response.delete_cookie("username", path="/")

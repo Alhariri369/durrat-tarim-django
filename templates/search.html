@@ -1,58 +1,99 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
+    <!-- Page Header -->
+    <div class="mb-10 text-center reveal">
+        <span
+            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+        >
+            {% if query %}نتائج البحث{% else %}جميع المنتجات{% endif %}
+        </span>
+        <h1 class="text-3xl font-black text-primary md:text-4xl">
+            {{ search_heading }}
+        </h1>
+        {% if not query and products %}
+        <p class="mt-3 text-secondary/50">تصفحي كافة منتجاتنا المتاحة</p>
+        {% endif %}
+    </div>
 
-{% block content %}
-<div class="container mx-auto py-12 px-4">
-    <div class="flex flex-col md:flex-row justify-between items-center mb-10 border-b-2 border-accent/20 pb-6 gap-6">
-        <div class="text-center md:text-right">
-            <h1 class="text-4xl md:text-5xl font-black text-primary font-tajawal m-0">
-                {{ type_name|default:"المنتجات" }}
-            </h1>
-            <p class="text-secondary mt-2 font-medium">تصفحي جميع المنتجات المتاحة</p>
+    <!-- Search Form -->
+    <form
+        method="get"
+        action="{% url 'product-search' %}"
+        role="search"
+        class="mx-auto mb-12 flex max-w-2xl items-stretch gap-3 reveal stagger-2"
+    >
+        <label for="catalog-search" class="sr-only">ابحثي عن منتج</label>
+        <div class="relative flex-1">
+            <input
+                id="catalog-search"
+                type="search"
+                name="q"
+                value="{{ query }}"
+                placeholder="اسم المنتج أو وصفه..."
+                class="w-full rounded-2xl border-2 border-secondary/10 bg-surface py-3.5 pr-5 pl-12 text-sm transition-all focus:border-accent/50 focus:outline-none focus:ring-4 focus:ring-accent/5"
+                maxlength="200"
+            />
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary/30"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+            </svg>
         </div>
+        <button
+            type="submit"
+            class="shrink-0 rounded-2xl bg-primary px-8 py-3.5 text-sm font-bold text-background shadow-lg shadow-primary/15 transition-all hover:opacity-90 hover:shadow-xl active:scale-[0.98]"
+        >
+            بحث
+        </button>
+    </form>
 
-        <a href="/products/types" class="px-6 py-2 border-2 border-secondary/20 text-secondary hover:bg-secondary/5 rounded-full font-bold transition-all flex items-center gap-2 group">
-            <span class="group-hover:translate-x-1 transition-transform">←</span>
-            <span>العودة للتصنيفات</span>
+    <!-- Results -->
+    {% if products %}
+    <div>{% include "catalog/partials/product_grid.html" %}</div>
+    <div>{% include "catalog/partials/pagination.html" %}</div>
+    {% else %}
+    <!-- Empty State -->
+    <div
+        class="rounded-[2.5rem] border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+    >
+        <div
+            class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-accent/5 text-4xl"
+        >
+            🔍
+        </div>
+        <h2 class="mb-2 text-xl font-bold text-secondary">
+            لم نتمكن من العثور على نتائج
+        </h2>
+
+        {% if query %}
+        <p class="mx-auto mb-6 max-w-md text-secondary/50">
+            عذراً، لا توجد منتجات تطابق بحثكِ عن "<span
+                class="font-bold text-secondary"
+                >{{ query }}</span
+            >". جربي كلمات مفتاحية مختلفة.
+        </p>
+        {% else %}
+        <p class="mb-6 text-secondary/50">
+            لا توجد منتجات متاحة حالياً. يرجى العودة لاحقاً.
+        </p>
+        {% endif %}
+
+        <a
+            href="{% url 'product-search' %}"
+            class="inline-flex items-center gap-2 rounded-2xl bg-primary px-8 py-3 text-sm font-bold text-background shadow-lg shadow-primary/15 transition-all hover:opacity-90 hover:-translate-y-0.5"
+        >
+            عرض جميع المنتجات
         </a>
     </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {% for product in products %}
-        <div class="group flex flex-col h-full bg-surface rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-500 overflow-hidden border border-secondary/5">
-
-            <div class="relative aspect-[3/4] overflow-hidden bg-background">
-                {% if product.img_url %}
-                <img src="{{ product.img_url }}"
-                     alt="{{ product.name }}"
-                     class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-                {% else %}
-                <div class="flex items-center justify-center h-full bg-secondary/5">
-                    <span class="text-secondary/30 font-bold italic">لا توجد صورة</span>
-                </div>
-                {% endif %}
-
-                <div class="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            </div>
-
-            <div class="p-6 flex flex-col flex-grow text-center">
-                <h5 class="text-xl font-bold text-secondary mb-2 group-hover:text-primary transition-colors">
-                    {{ product.name }}
-                </h5>
-                <p class="text-2xl font-black text-accent mb-6">
-                    {{ product.price }} <span class="text-sm">ر.س</span>
-                </p>
-
-                <a href="/products/items/{{ product.id }}"
-                   class="mt-auto px-6 py-3 border-2 border-accent text-accent hover:bg-accent hover:text-background font-black rounded-xl transition-all duration-300">
-                    التفاصيل
-                </a>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-span-full text-center py-20 border-2 border-dashed border-secondary/10 rounded-2xl">
-            <p class="text-xl text-secondary/50 font-bold italic">لا توجد منتجات حاليا.</p>
-        </div>
-        {% endfor %}
-    </div>
-</div>
+    {% endif %}
+</section>
 {% endblock %}

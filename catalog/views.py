@@ -1,290 +1,312 @@
-import os
-import tempfile
-import uuid
-from pathlib import Path
-from urllib import error, request
+from urllib.parse import urlencode
 
-from django.conf import settings
-from django.db.models import Q
+from allauth.account.models import EmailAddress
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import BooleanField, Count, Exists, OuterRef, Q, Value
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
-from accounts.models import User
-from accounts.views import _authenticate
-from .models import Product, SiteSettings
+from .models import Category, Favorite, FeaturedProduct, Product
 from .utils import normalize_arabic
+from .whatsapp import (
+    MAX_FAVORITES_PER_MESSAGE,
+    favorites_message,
+    product_message,
+    product_whatsapp_clicked,
+    whatsapp_url,
+)
+
+PRODUCTS_PER_PAGE = 12
+LATEST_PRODUCTS_LIMIT = 8
 
 
-DEFAULT_SUPABASE_STORAGE_BUCKET = "product-images"
+def _public_products(user=None):
+    products = Product.objects.filter(
+        is_active=True, category__is_active=True
+    ).select_related("category")
+    products = products.annotate(favorite_count=Count("favorites", distinct=True))
+    if user is not None and user.is_authenticated:
+        products = products.annotate(
+            is_favorite=Exists(
+                Favorite.objects.filter(user=user, product_id=OuterRef("pk"))
+            )
+        )
+    else:
+        products = products.annotate(
+            is_favorite=Value(False, output_field=BooleanField())
+        )
+    return products
 
 
-def _pagination(request):
-    try:
-        skip = max(int(request.GET.get("skip", 0)), 0)
-    except ValueError:
-        skip = 0
-    try:
-        limit = min(max(int(request.GET.get("limit", 20)), 1), 100)
-    except ValueError:
-        limit = 20
-    return skip, limit
+def _paginate(request, queryset):
+    page_obj = Paginator(queryset, PRODUCTS_PER_PAGE).get_page(request.GET.get("page"))
+    query = request.GET.copy()
+    query.pop("page", None)
+    return page_obj, query.urlencode()
 
 
-def _products_slice(queryset, request):
-    skip, limit = _pagination(request)
-    return queryset[skip : skip + limit]
+def _safe_return_url(request, fallback="home"):
+    candidate = request.POST.get("next") or request.GET.get("next")
+    if candidate and url_has_allowed_host_and_scheme(
+        candidate,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return candidate
+    return reverse(fallback)
+
+
+def _verified_user_redirect(request):
+    return_url = (
+        request.get_full_path()
+        if request.method == "GET" and not request.GET.get("next")
+        else _safe_return_url(request)
+    )
+    if not request.user.is_authenticated:
+        request.session["favorite_return_url"] = return_url
+        return redirect(f"{reverse('account_login')}?{urlencode({'next': return_url})}")
+    if not EmailAddress.objects.filter(user=request.user, verified=True).exists():
+        request.session["favorite_return_url"] = return_url
+        messages.error(request, "يرجى توثيق بريدك الإلكتروني لاستخدام المفضلة.")
+        return redirect(
+            f"{reverse('account_email_verification_sent')}?"
+            f"{urlencode({'next': return_url})}"
+        )
+    return None
 
 
 def health(request):
-    return JsonResponse({"status": "online", "store": "درة تريم"})
+    return JsonResponse({"status": "online", "store": "durrat_tarim"})
 
 
 def home(request):
-    products = _products_slice(Product.objects.filter(is_active=True).order_by("id"), request)
-    return render(request, "index.html", {"products": products})
+    products = list(
+        _public_products(request.user).order_by("-created_at", "-id")[
+            :LATEST_PRODUCTS_LIMIT
+        ]
+    )
+    categories = Category.objects.filter(is_active=True).order_by(
+        "display_order", "name_ar"
+    )
+    featured = list(
+        FeaturedProduct.objects.filter(
+            is_active=True,
+            product__is_active=True,
+            product__category__is_active=True,
+        )
+        .select_related("product", "product__category")
+        .order_by("display_order", "id")
+    )
+    favorite_ids = set()
+    favorite_counts = {}
+    if featured:
+        product_ids = [item.product_id for item in featured]
+        favorite_counts = dict(
+            Favorite.objects.filter(product_id__in=product_ids)
+            .values_list("product_id")
+            .annotate(total=Count("id"))
+        )
+        if request.user.is_authenticated:
+            favorite_ids = set(
+                Favorite.objects.filter(
+                    user=request.user, product_id__in=product_ids
+                ).values_list("product_id", flat=True)
+            )
+    for index, item in enumerate(featured):
+        item.product.is_favorite = item.product_id in favorite_ids
+        item.product.favorite_count = favorite_counts.get(item.product_id, 0)
+        item.hidden = "" if index == 0 else "hidden"
+        item.aria_hidden = "false" if index == 0 else "true"
+        item.aria_current = "true" if index == 0 else "false"
+
+    return render(
+        request,
+        "index.html",
+        {
+            "products": products,
+            "categories": categories,
+            "featured": featured,
+            "page_title": "درة تريم | أزياء وعبايات",
+            "hero": (
+                "catalog/partials/featured_slider.html"
+                if featured
+                else "catalog/partials/empty_hero.html"
+            ),
+        },
+    )
 
 
 def search_products(request):
-    raw_query = request.GET.get("product_desc", "")
+    raw_query = request.GET.get("q", request.GET.get("product_desc", "")).strip()
     query = normalize_arabic(raw_query)
-    products = Product.objects.filter(is_active=True)
-    if raw_query or query:
+    products = _public_products(request.user)
+    if raw_query:
         products = products.filter(
-            Q(name__icontains=raw_query)
-            | Q(description__icontains=raw_query)
-            | Q(name__icontains=query)
-            | Q(description__icontains=query)
+            Q(name_ar__icontains=raw_query)
+            | Q(description_ar__icontains=raw_query)
+            | Q(name_ar__icontains=query)
+            | Q(description_ar__icontains=query)
         )
-    products = _products_slice(products.order_by("id"), request)
-    return render(request, "search.html", {"products": products, "query": query, "type_name": query})
+    page_obj, pagination_query = _paginate(
+        request, products.order_by("-created_at", "-id")
+    )
+    return render(
+        request,
+        "search.html",
+        {
+            "products": page_obj.object_list,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
+            "query": raw_query,
+            "empty_message": "لم نجد منتجات مطابقة لبحثك.",
+            "search_heading": (
+                f"نتائج البحث عن «{raw_query}»" if raw_query else "جميع المنتجات"
+            ),
+            "page_title": (
+                f"نتائج البحث عن {raw_query} | درة تريم"
+                if raw_query
+                else "جميع المنتجات | درة تريم"
+            ),
+            "meta_description": "ابحثي في منتجات درة تريم وتصفحي الأسعار بالريال السعودي واليمني.",
+        },
+    )
 
 
 def get_all_types(request):
-    types = Product.objects.filter(is_active=True).exclude(type="").values_list("type", flat=True).distinct()
-    return render(request, "types.html", {"types": types})
+    categories = Category.objects.filter(is_active=True).order_by(
+        "display_order", "name_ar"
+    )
+    return render(
+        request,
+        "types.html",
+        {
+            "categories": categories,
+            "page_title": "التصنيفات | درة تريم",
+            "meta_description": "تصفحي تصنيفات الأزياء والعبايات في درة تريم.",
+        },
+    )
 
 
 def get_type_products(request, type_name):
-    normalized_type = normalize_arabic(type_name)
-    products = _products_slice(
-        Product.objects.filter(is_active=True, type=normalized_type).order_by("id"), request
+    category = get_object_or_404(Category, is_active=True, slug=type_name)
+    products = _public_products(request.user).filter(category=category)
+    page_obj, pagination_query = _paginate(
+        request, products.order_by("-created_at", "-id")
     )
-    return render(request, "type_products.html", {"products": products, "type_name": type_name})
+    return render(
+        request,
+        "type_products.html",
+        {
+            "products": page_obj.object_list,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
+            "category": category,
+            "empty_message": "لا توجد منتجات متاحة في هذا التصنيف حاليا.",
+            "page_title": f"{category.name_ar} | درة تريم",
+            "meta_description": f"تصفحي منتجات {category.name_ar} من درة تريم.",
+        },
+    )
 
 
 def product_details(request, pk):
-    product = get_object_or_404(Product, pk=pk, is_active=True)
-    return render(request, "product_details.html", {"product": product})
-
-
-def _admin_user(request):
-    user_id = request.session.get("admin_user_id")
-    if not user_id:
-        return None
-    return User.objects.filter(id=user_id, is_active=True, role=User.Role.ADMIN).first()
-
-
-def admin_required(view_func):
-    def wrapped(request, *args, **kwargs):
-        admin = _admin_user(request)
-        if not admin:
-            return redirect("admin-login")
-        request.admin_user = admin
-        return view_func(request, *args, **kwargs)
-
-    return wrapped
-
-
-@admin_required
-def admin_dashboard(request):
+    product = get_object_or_404(_public_products(request.user), pk=pk)
     return render(
         request,
-        "admin/dashboard.html",
+        "product_details.html",
         {
-            "admin_user": request.admin_user,
-            "total_products": Product.objects.count(),
-            "total_types": Product.objects.values("type").distinct().count(),
+            "product": product,
+            "page_title": f"{product.name_ar} | درة تريم",
+            "meta_description": (product.description_ar or product.name_ar)[:150],
         },
     )
 
 
-@admin_required
-def admin_products_list(request):
-    products = Product.objects.order_by("id")[:1000]
-    return render(request, "admin/products.html", {"admin_user": request.admin_user, "products": products})
+def product_whatsapp(request, pk):
+    product = get_object_or_404(_public_products(), pk=pk)
+    product_whatsapp_clicked.send_robust(
+        sender=Product, request=request, product=product
+    )
+    return redirect(whatsapp_url(product_message(request, product)))
 
 
-def _save_product_image(image):
-    if not image:
-        return None
-
-    suffix = Path(image.name).suffix or ".jpg"
-    filename = f"{uuid.uuid4().hex}{suffix}"
-    storage_path = f"products/{filename}"
-    content = b"".join(image.chunks())
-
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("SUPABASE_ANON_KEY")
-    if supabase_url and supabase_key:
-        return _upload_product_image_to_supabase(
-            storage_path=storage_path,
-            content=content,
-            content_type=getattr(image, "content_type", None) or "application/octet-stream",
-            supabase_url=supabase_url.rstrip("/"),
-            supabase_key=supabase_key,
-        )
-
-    upload_dir = _writable_upload_dir()
-    with (upload_dir / filename).open("wb+") as destination:
-        destination.write(content)
-    return f"{settings.MEDIA_URL}products/{filename}"
+@require_POST
+def add_favorite(request, pk):
+    auth_redirect = _verified_user_redirect(request)
+    if auth_redirect:
+        return auth_redirect
+    product = get_object_or_404(_public_products(), pk=pk)
+    _, created = Favorite.objects.get_or_create(user=request.user, product=product)
+    if created:
+        messages.success(request, "تمت إضافة المنتج إلى المفضلة.")
+    else:
+        messages.info(request, "المنتج موجود في المفضلة بالفعل.")
+    return redirect(_safe_return_url(request))
 
 
-def _upload_product_image_to_supabase(storage_path, content, content_type, supabase_url, supabase_key):
-    bucket = os.getenv("SUPABASE_STORAGE_BUCKET", DEFAULT_SUPABASE_STORAGE_BUCKET)
-    upload_url = f"{supabase_url}/storage/v1/object/{bucket}/{storage_path}"
-    upload_request = request.Request(
-        upload_url,
-        data=content,
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {supabase_key}",
-            "apikey": supabase_key,
-            "Content-Type": content_type,
-            "x-upsert": "true",
+@require_POST
+def remove_favorite(request, pk):
+    auth_redirect = _verified_user_redirect(request)
+    if auth_redirect:
+        return auth_redirect
+    deleted, _ = Favorite.objects.filter(user=request.user, product_id=pk).delete()
+    if deleted:
+        messages.success(request, "تمت إزالة المنتج من المفضلة.")
+    else:
+        messages.info(request, "المنتج غير موجود في المفضلة.")
+    return redirect(_safe_return_url(request, fallback="favorites"))
+
+
+def favorites(request):
+    auth_redirect = _verified_user_redirect(request)
+    if auth_redirect:
+        return auth_redirect
+    products = (
+        _public_products(request.user)
+        .filter(favorites__user=request.user)
+        .order_by("-favorites__created_at", "-favorites__id")
+    )
+    page_obj, pagination_query = _paginate(request, products)
+    return render(
+        request,
+        "favorites.html",
+        {
+            "products": page_obj.object_list,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
+            "show_selection": True,
+            "hide_favorite": True,
+            "page_title": "المفضلة | درة تريم",
+            "meta_description": "منتجاتك المفضلة في درة تريم.",
         },
     )
-    try:
-        with request.urlopen(upload_request, timeout=15):
-            pass
-    except error.URLError as exc:
-        raise RuntimeError("Unable to upload product image to Supabase Storage") from exc
 
-    public_base_url = os.getenv(
-        "PRODUCT_IMAGE_BASE_URL",
-        f"{supabase_url}/storage/v1/object/public/{bucket}",
+
+@require_POST
+def favorites_whatsapp(request):
+    auth_redirect = _verified_user_redirect(request)
+    if auth_redirect:
+        return auth_redirect
+    selected_ids = []
+    for value in request.POST.getlist("products"):
+        try:
+            selected_ids.append(int(value))
+        except (TypeError, ValueError):
+            continue
+    selected_ids = list(dict.fromkeys(selected_ids))[:MAX_FAVORITES_PER_MESSAGE]
+    products = list(
+        _public_products(request.user)
+        .filter(id__in=selected_ids, favorites__user=request.user)
+        .order_by("id")[:MAX_FAVORITES_PER_MESSAGE]
     )
-    return f"{public_base_url.rstrip('/')}/{storage_path}"
-
-
-def _writable_upload_dir():
-    upload_dir = settings.MEDIA_ROOT / "products"
-    try:
-        upload_dir.mkdir(parents=True, exist_ok=True)
-        return upload_dir
-    except OSError:
-        fallback_dir = Path(tempfile.gettempdir()) / "uploads" / "products"
-        fallback_dir.mkdir(parents=True, exist_ok=True)
-        return fallback_dir
-
-
-@require_http_methods(["GET", "POST"])
-@admin_required
-def admin_product_create(request):
-    if request.method == "GET":
-        return render(
-            request,
-            "admin/product_form.html",
-            {
-                "admin_user": request.admin_user,
-                "form_action": "/admin/products/new",
-                "form_title": "إضافة منتج جديد",
-                "submit_label": "حفظ المنتج",
-            },
-        )
-
-    Product.objects.create(
-        name=normalize_arabic(request.POST.get("name")),
-        type=normalize_arabic(request.POST.get("type")),
-        price=request.POST.get("price") or 0,
-        description=request.POST.get("description", ""),
-        img_url=_save_product_image(request.FILES.get("img_file")),
-    )
-    return redirect("admin-products")
-
-
-@require_http_methods(["GET", "POST"])
-@admin_required
-def admin_product_edit(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    if request.method == "GET":
-        return render(
-            request,
-            "admin/product_form.html",
-            {
-                "admin_user": request.admin_user,
-                "product": product,
-                "form_action": f"/admin/products/{product.pk}/edit",
-                "form_title": "تعديل المنتج",
-                "submit_label": "حفظ التعديلات",
-            },
-        )
-
-    product.name = normalize_arabic(request.POST.get("name"))
-    product.type = normalize_arabic(request.POST.get("type;l    i9ol,."))
-    try:
-        product.price = float(request.POST.get("price", 0))
-    except (ValueError, TypeError):
-        product.price = 0
-        
-    product.description = request.POST.get("description", "")
-
-    img_url = _save_product_image(request.FILES.get("img_file"))
-    if img_url:
-        product.img_url = img_url
-
-    product.save()
-    return redirect("admin-products")
-
-
-@admin_required
-def admin_product_delete(request, pk):
-    Product.objects.filter(pk=pk).delete()
-    return redirect("admin-products")
-
-
-@require_http_methods(["GET", "POST"])
-@admin_required
-def admin_settings(request):
-    site_settings = SiteSettings.get_current()
-    if request.method == "GET":
-        return render(request, "admin/settings.html", {"admin_user": request.admin_user, "site_settings": site_settings})
-
-    fields = [
-        "light_color_primary",
-        "light_color_secondary",
-        "light_color_accent",
-        "light_color_background",
-        "light_color_surface",
-        "dark_color_primary",
-        "dark_color_secondary",
-        "dark_color_accent",
-        "dark_color_background",
-        "dark_color_surface",
-    ]
-    for field in fields:
-        setattr(site_settings, field, request.POST.get(field, getattr(site_settings, field)))
-    site_settings.save(update_fields=fields)
-    return redirect("admin-settings")
-
-
-@require_http_methods(["GET", "POST"])
-def admin_login(request):
-    if request.method == "GET":
-        return render(request, "admin/login.html")
-
-    username = request.POST.get("username", "").strip()
-    password = request.POST.get("password", "")
-    user = _authenticate(username, password)
-    if not user or user.role != User.Role.ADMIN:
-        return render(request, "admin/login.html", {"error": "Invalid admin credentials."}, status=401)
-
-    request.session["store_user_id"] = str(user.id)
-    request.session["admin_user_id"] = str(user.id)
-    return redirect("admin-dashboard")
-
-
-def admin_logout(request):
-    request.session.pop("admin_user_id", None)
-    return redirect("admin-login")
+    if not products:
+        messages.error(request, "اختاري منتجا واحدا على الأقل من مفضلتك.")
+        return redirect("favorites")
+    message, included = favorites_message(request, products)
+    if not included:
+        messages.error(request, "تعذر إنشاء رسالة ضمن الحد المسموح.")
+        return redirect("favorites")
+    return redirect(whatsapp_url(message))

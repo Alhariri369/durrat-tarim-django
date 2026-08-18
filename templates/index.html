@@ -1,79 +1,610 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% load static %} {% block content %}
 
-{% block content %}
-<section class="py-12 text-center lg:text-start">
-    <div class="container mx-auto px-6 py-12 border border-accent/30 rounded-2xl shadow-sm bg-surface/75">
-        <div class="flex flex-col lg:flex-row items-center gap-12">
-            <div class="lg:w-1/2">
-                <h1 class="text-4xl md:text-6xl font-bold mb-10 text-primary">درة تريم</h1>
-                <p class="text-lg md:text-xl text-secondary/80 mb-8 leading-relaxed ml-5">
-                    اكتشفي أحدث تشكيلات الفساتين العربية، والعبايات، والأزياء الراقية المصممة لتتألقي في كل مناسبة.
-                </p>
-                <div class="flex flex-wrap gap-4 justify-center lg:justify-start">
-                    <a href="/products/search?product_desc="
-                       class="px-8 py-3 bg-primary text-background hover:opacity-90 font-bold rounded-full transition-colors duration-200">
-                        تسوقي الآن
-                    </a>
-                    <a href="/products/types"
-                       class="px-8 py-3 border-2 border-secondary/20 hover:bg-secondary/5 text-secondary font-bold rounded-full transition-all duration-200">
-                        تصفح التصنيفات
-                    </a>
-                </div>
-            </div>
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<div class="gradient-hero">{% include hero %}</div>
 
-            <div class="lg:w-1/2 flex justify-center">
-                <div class="w-64 h-64 md:w-80 md:h-80 border-2 border-accent/30 rounded-full flex items-center justify-center bg-background shadow-inner">
-                    <span class="text-7xl md:text-9xl">✨</span>
-                </div>
-            </div>
+<!-- ============================================================
+     TRUST STRIP / SOCIAL PROOF
+     ============================================================ -->
+<section class="border-y border-secondary/5 bg-surface/50 py-6">
+    <div class="mx-auto max-w-5xl overflow-hidden px-4">
+        <div
+            class="marquee-content items-center animate-marquee flex gap-12 text-sm font-bold text-secondary/40 md:gap-20"
+        >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >✨ أزياء راقية</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >📱 طلب عبر واتساب</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >🚚 توصيل سريع</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >💎 جودة عالية</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >🎨 تصاميم حصرية</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >🤝 خدمة مميزة</span
+            >
+            <!-- Duplicated for seamless loop -->
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >✨ أزياء راقية</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >📱 طلب عبر واتساب</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >🚚 توصيل سريع</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >💎 جودة عالية</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >🎨 تصاميم حصرية</span
+            >
+            <span class="flex items-center gap-2 whitespace-nowrap"
+                >🤝 خدمة مميزة</span
+            >
         </div>
     </div>
 </section>
 
-<section class="container mx-auto px-6 py-16">
-    <div class="text-center mb-12">
-        <h2 class="text-3xl font-bold text-primary mb-2">أحدث المنتجات</h2>
-        <p class="text-secondary/60">تشكيلة مختارة من أرقى التصاميم</p>
+<!-- ============================================================
+     CATEGORIES SHOWCASE
+     ============================================================ -->
+<section class="mx-auto max-w-7xl px-4 py-16 md:py-24">
+    <div class="mb-12 text-center reveal">
+        <span
+            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+        >
+            تصفحي حسب المجموعة
+        </span>
+        <h2 class="text-3xl font-black text-primary md:text-5xl">
+            تشكيلاتنا المميزة
+        </h2>
+        <p class="mt-4 text-lg text-secondary/55">
+            اختاري ما يناسب ذوقكِ من مجموعاتنا المختارة بعناية
+        </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {% for product in products %}
-        <div class="group flex flex-col h-full bg-surface rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden border border-secondary/10">
-            <div class="relative aspect-[3/4] overflow-hidden bg-background">
-                {% if product.img_url %}
-                <img src="{{ product.img_url }}"
-                     alt="{{ product.name }}"
-                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                {% else %}
-                <div class="flex items-center justify-center h-full">
-                    <span class="text-secondary/30">لا توجد صورة</span>
-                </div>
-                {% endif %}
+    <div class="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 lg:grid-cols-4">
+        {% for category in categories|slice:":8" %}
+        <a
+            href="{% url 'product-type' category.slug %}"
+            class="group glass-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden"
+            data-tilt
+        >
+            <div class="aspect-square overflow-hidden bg-background">
+                <img
+                    src="{{ category.image.url }}"
+                    alt="{{ category.name_ar }}"
+                    loading="lazy"
+                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
             </div>
-
-            <div class="p-6 flex flex-col flex-grow text-center">
-                <h3 class="text-lg font-bold text-secondary mb-2">{{ product.name }}</h3>
-                <p class="text-xl font-semibold text-accent mb-6">
-                    {{ product.price }} ر.س
-                </p>
-                <a href="/products/items/{{ product.id }}"
-                   class="mt-auto px-6 py-2 border border-accent text-accent hover:bg-accent hover:text-background font-bold rounded-full transition-all duration-200">
-                    التفاصيل
-                </a>
+            <div class="p-5 text-center">
+                <h3
+                    class="text-lg font-black text-secondary transition-colors group-hover:text-accent"
+                >
+                    {{ category.name_ar }}
+                </h3>
             </div>
-        </div>
+        </a>
         {% empty %}
-        <div class="col-span-full py-20 text-center">
-            <p class="text-xl text-secondary/40">لا توجد منتجات حاليا.</p>
+        <div
+            class="col-span-full rounded-4xl border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+        >
+            <span class="text-5xl mb-4 block">👗</span>
+            <h3 class="text-xl font-bold text-secondary mb-2">
+                لا توجد تصنيفات حالياً
+            </h3>
+            <p class="text-secondary/50">نعمل على إضافة مجموعات جديدة قريباً</p>
         </div>
         {% endfor %}
     </div>
 
-    <div class="text-center mt-12">
-        <a href="/products/search?product_desc="
-           class="inline-block px-12 py-3 bg-secondary text-surface font-bold rounded-full hover:opacity-90 transition-opacity">
-            عرض كل المنتجات
+    {% if categories|length > 8 %}
+    <div class="mt-10 text-center reveal">
+        <a
+            href="{% url 'product-types' %}"
+            class="inline-flex items-center gap-2 rounded-2xl border-2 border-accent/30 px-8 py-3.5 text-sm font-bold text-accent transition-all hover:border-accent hover:bg-accent/5 hover:-translate-y-0.5"
+        >
+            عرض جميع التصنيفات
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+            </svg>
+        </a>
+    </div>
+    {% endif %}
+</section>
+
+<!-- ============================================================
+     BENEFITS / WHY CHOOSE US
+     ============================================================ -->
+<section class="gradient-soft py-16 md:py-24">
+    <div class="mx-auto max-w-7xl px-4">
+        <div class="mb-14 text-center reveal">
+            <span
+                class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+            >
+                لماذا درة تريم؟
+            </span>
+            <h2 class="text-3xl font-black text-primary md:text-5xl">
+                تجربة تسوق راقية ومميزة
+            </h2>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-3">
+            <!-- Benefit 1 -->
+            <div class="glass-card reveal stagger-1 p-8 text-center">
+                <div
+                    class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-3xl shadow-sm"
+                >
+                    📱
+                </div>
+                <h3 class="mb-3 text-xl font-black text-primary">
+                    طلب سهل وسريع
+                </h3>
+                <p class="text-sm leading-relaxed text-secondary/60">
+                    تواصلي معنا مباشرة عبر واتساب للاستفسار عن أي منتج، وسنرد
+                    عليكِ بأسرع وقت ممكن.
+                </p>
+            </div>
+
+            <!-- Benefit 2 -->
+            <div class="glass-card reveal stagger-3 p-8 text-center">
+                <div
+                    class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-3xl shadow-sm"
+                >
+                    💎
+                </div>
+                <h3 class="mb-3 text-xl font-black text-primary">جودة فاخرة</h3>
+                <p class="text-sm leading-relaxed text-secondary/60">
+                    نختار أقمشتنا وتصاميمنا بعناية فائقة لنضمن لكِ إطلالة راقية
+                    تناسب كافة مناسباتكِ.
+                </p>
+            </div>
+
+            <!-- Benefit 3 -->
+            <div class="glass-card reveal stagger-5 p-8 text-center">
+                <div
+                    class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-50 text-3xl shadow-sm"
+                >
+                    🚚
+                </div>
+                <h3 class="mb-3 text-xl font-black text-primary">توصيل سريع</h3>
+                <p class="text-sm leading-relaxed text-secondary/60">
+                    نصلكِ أينما كنتِ مع خدمة توصيل موثوقة وسريعة لجميع مناطق
+                    المملكة.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     LATEST PRODUCTS
+     ============================================================ -->
+<section class="mx-auto max-w-7xl px-4 py-16 md:py-24">
+    <div class="mb-8 flex items-end justify-between gap-4">
+        <div class="reveal">
+            <span
+                class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+            >
+                أحدث ما وصل
+            </span>
+            <h2 class="text-3xl font-black text-primary md:text-5xl">
+                وصل حديثاً
+            </h2>
+            <p class="mt-2 text-secondary/50">اكتشفي أحدث تصاميمنا</p>
+        </div>
+        <a
+            href="{% url 'product-search' %}"
+            class="reveal shrink-0 text-sm font-bold text-accent transition-colors hover:text-accent/70"
+        >
+            عرض الكل →
+        </a>
+    </div>
+
+    {% include "catalog/partials/product_grid.html" %}
+
+    <div class="mt-12 text-center reveal">
+        <a
+            href="{% url 'product-search' %}"
+            class="inline-flex items-center gap-2 rounded-2xl bg-secondary px-10 py-3.5 text-sm font-bold text-surface shadow-lg shadow-secondary/10 transition-all hover:opacity-90 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98]"
+        >
+            استكشفي جميع المنتجات
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+            </svg>
         </a>
     </div>
 </section>
+
+<!-- ============================================================
+     HOW IT WORKS
+     ============================================================ -->
+<section class="gradient-soft py-16 md:py-24">
+    <div class="mx-auto max-w-7xl px-4">
+        <div class="mb-14 text-center reveal">
+            <span
+                class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+            >
+                كيفية الطلب
+            </span>
+            <h2 class="text-3xl font-black text-primary md:text-5xl">
+                ثلاث خطوات بسيطة
+            </h2>
+            <p class="mt-4 text-lg text-secondary/55">
+                تسوقي بكل سهولة واحصلي على إطلالتكِ المثالية
+            </p>
+        </div>
+
+        <div class="grid gap-8 md:grid-cols-3">
+            <!-- Step 1 -->
+            <div class="relative reveal stagger-1">
+                <div class="glass-card p-8 text-center">
+                    <div
+                        class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent text-2xl font-black text-white shadow-lg shadow-accent/20"
+                    >
+                        1
+                    </div>
+                    <h3 class="mb-3 text-xl font-black text-primary">
+                        تصفحي واختاري
+                    </h3>
+                    <p class="text-sm leading-relaxed text-secondary/60">
+                        تصفحي تشكيلتنا الواسعة من الأزياء والعبايات واختاري ما
+                        يناسب ذوقكِ.
+                    </p>
+                </div>
+                <!-- Connector Line (desktop only) -->
+                <div
+                    class="absolute left-8 top-1/2 hidden h-0.5 w-16 bg-linear-to-r from-accent/0 via-accent/20 to-accent/0 lg:block"
+                ></div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="relative reveal stagger-3">
+                <div class="glass-card p-8 text-center">
+                    <div
+                        class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent text-2xl font-black text-white shadow-lg shadow-accent/20"
+                    >
+                        2
+                    </div>
+                    <h3 class="mb-3 text-xl font-black text-primary">
+                        استفسري عبر واتساب
+                    </h3>
+                    <p class="text-sm leading-relaxed text-secondary/60">
+                        اضغطي على زر واتساب للمنتج الذي يعجبكِ وأرسلي استفساركِ
+                        مباشرة.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="reveal stagger-5">
+                <div class="glass-card p-8 text-center">
+                    <div
+                        class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent text-2xl font-black text-white shadow-lg shadow-accent/20"
+                    >
+                        3
+                    </div>
+                    <h3 class="mb-3 text-xl font-black text-primary">
+                        استلمي طلبكِ
+                    </h3>
+                    <p class="text-sm leading-relaxed text-secondary/60">
+                        نؤكد طلبكِ ونجهزه بعناية، ثم يصلكِ أينما كنتِ بأسرع وقت.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     TESTIMONIALS
+     ============================================================ -->
+<section class="mx-auto max-w-7xl px-4 py-16 md:py-24 hidden">
+    <div class="mb-14 text-center reveal">
+        <span
+            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+        >
+            آراء العميلات
+        </span>
+        <h2 class="text-3xl font-black text-primary md:text-5xl">
+            ماذا يقولون عنا
+        </h2>
+        <p class="mt-4 text-lg text-secondary/55">
+            تقييمات حقيقية من عميلاتنا الرائعات
+        </p>
+    </div>
+
+    <div class="grid gap-6 md:grid-cols-3">
+        <!-- Testimonial 1 -->
+        <div class="glass-card reveal stagger-1 p-7">
+            <div class="mb-4 flex gap-1 text-amber-400 text-lg">
+                ⭐ ⭐ ⭐ ⭐ ⭐
+            </div>
+            <p class="mb-5 text-sm leading-relaxed text-secondary/70">
+                "جودة الأقمشة رائعة جداً والتصاميم أنيقة. تعاملهم سريع عبر
+                واتساب والتوصيل كان في الموعد. بصراحة تجربة تستحق التكرار!"
+            </p>
+            <div class="flex items-center gap-3">
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-sm font-black text-accent"
+                >
+                    ن
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-secondary">نورة</p>
+                    <p class="text-xs text-secondary/40">الرياض</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testimonial 2 -->
+        <div class="glass-card reveal stagger-3 p-7">
+            <div class="mb-4 flex gap-1 text-amber-400 text-lg">
+                ⭐ ⭐ ⭐ ⭐ ⭐
+            </div>
+            <p class="mb-5 text-sm leading-relaxed text-secondary/70">
+                "أفضل متجر عبايات تعاملت معه. التصاميم جديدة وعصرية، والأسعار
+                مناسبة جداً. أنصح كل البنات يتعاملون مع درة تريم."
+            </p>
+            <div class="flex items-center gap-3">
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-sm font-black text-accent"
+                >
+                    س
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-secondary">سارة</p>
+                    <p class="text-xs text-secondary/40">جدة</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Testimonial 3 -->
+        <div class="glass-card reveal stagger-5 p-7">
+            <div class="mb-4 flex gap-1 text-amber-400 text-lg">
+                ⭐ ⭐ ⭐ ⭐ ⭐
+            </div>
+            <p class="mb-5 text-sm leading-relaxed text-secondary/70">
+                "طلبت عبايتين ووصلوني بسرعة. الخامة ممتازة والتطريز متقن. تجربة
+                تسوق سهلة وسلسة بدون تعقيد."
+            </p>
+            <div class="flex items-center gap-3">
+                <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10 text-sm font-black text-accent"
+                >
+                    م
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-secondary">منى</p>
+                    <p class="text-xs text-secondary/40">الدمام</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     CTA BANNER
+     ============================================================ -->
+<section class="mx-auto max-w-7xl px-4 py-8 md:py-12">
+    <div
+        class="gradient-cta relative overflow-hidden rounded-[3rem] p-10 text-center text-white shadow-2xl shadow-accent/20 md:p-16 reveal"
+    >
+        <!-- Decorative Blobs -->
+        <div
+            class="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"
+        ></div>
+        <div
+            class="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-white/10 blur-3xl"
+        ></div>
+        <div
+            class="absolute left-1/2 top-1/2 h-60 w-60 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/5 blur-3xl"
+        ></div>
+
+        <div class="relative">
+            <h2 class="mb-4 text-3xl font-black md:text-5xl">
+                هل أعجبكِ أحد التصاميم؟
+            </h2>
+            <p class="mx-auto mb-8 max-w-xl text-lg text-white/80 md:text-xl">
+                لا تترددي في التواصل معنا عبر واتساب للاستفسار عن أي منتج أو
+                للحصول على استشارة في اختيار الإطلالة المثالية.
+            </p>
+            <a
+                href="https://wa.me/{{ site_settings.whatsapp_number|default:'967783278181' }}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-3 rounded-2xl bg-white px-10 py-4 text-base font-black text-accent shadow-xl shadow-black/10 transition-all hover:scale-105 hover:shadow-2xl active:scale-95 pulse-ring"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-6 w-6"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
+                    />
+                </svg>
+                تواصلي معنا الآن
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================
+     FAQ
+     ============================================================ -->
+<section class="mx-auto max-w-3xl px-4 py-16 md:py-24">
+    <div class="mb-12 text-center reveal">
+        <span
+            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+        >
+            الأسئلة الشائعة
+        </span>
+        <h2 class="text-3xl font-black text-primary md:text-5xl">
+            كل ما تودين معرفته
+        </h2>
+    </div>
+
+    <div class="space-y-4">
+        <!-- FAQ 1 -->
+        <div class="glass-card reveal stagger-1 overflow-hidden">
+            <button
+                data-faq-toggle
+                aria-expanded="false"
+                class="flex w-full items-center justify-between p-6 text-right font-bold text-secondary transition-colors hover:text-primary"
+            >
+                <span>كيف يمكنني طلب منتج؟</span>
+                <span
+                    data-faq-icon
+                    class="text-xl text-accent transition-transform duration-300"
+                    >+</span
+                >
+            </button>
+            <div
+                class="max-h-0 overflow-hidden transition-all duration-400 ease-out"
+            >
+                <p class="px-6 pb-6 text-sm leading-relaxed text-secondary/60">
+                    يمكنكِ تصفح المنتجات والضغط على زر "استفسار واتساب" لأي منتج
+                    يعجبكِ، وسيتم توجيهكِ مباشرة إلى محادثة واتساب حيث يمكنكي ذكر طلبك. سنقوم بالرد عليكِ وتأكيد
+                    الطلب.
+                </p>
+            </div>
+        </div>
+
+        <!-- FAQ 2 - HIDDEN -->
+        <div class="glass-card reveal stagger-2 overflow-hidden hidden">
+            <button
+                data-faq-toggle
+                aria-expanded="false"
+                class="flex w-full items-center justify-between p-6 text-right font-bold text-secondary transition-colors hover:text-primary"
+            >
+                <span>هل يتوفر توصيل لجميع المناطق؟</span>
+                <span
+                    data-faq-icon
+                    class="text-xl text-accent transition-transform duration-300"
+                    >+</span
+                >
+            </button>
+            <div
+                class="max-h-0 overflow-hidden transition-all duration-400 ease-out"
+            >
+                <p class="px-6 pb-6 text-sm leading-relaxed text-secondary/60">
+                    نعم، نوفر خدمة التوصيل لجميع مناطق المملكة العربية السعودية.
+                    يمكنكِ الاستفسار عن تكلفة الشحن ومدة التوصيل عبر واتساب عند
+                    الطلب.
+                </p>
+            </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="glass-card reveal stagger-3 overflow-hidden">
+            <button
+                data-faq-toggle
+                aria-expanded="false"
+                class="flex w-full items-center justify-between p-6 text-right font-bold text-secondary transition-colors hover:text-primary"
+            >
+                <span>ما هي طرق الدفع المتاحة؟</span>
+                <span
+                    data-faq-icon
+                    class="text-xl text-accent transition-transform duration-300"
+                    >+</span
+                >
+            </button>
+            <div
+                class="max-h-0 overflow-hidden transition-all duration-400 ease-out"
+            >
+                <p class="px-6 pb-6 text-sm leading-relaxed text-secondary/60">
+                    نقبل الدفع في المحل، والتحويل البنكي. سيتم توضيح خيارات
+                    الدفع المتاحة عند تأكيد طلبكِ عبر واتساب.
+                </p>
+            </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="glass-card reveal stagger-4 overflow-hidden">
+            <button
+                data-faq-toggle
+                aria-expanded="false"
+                class="flex w-full items-center justify-between p-6 text-right font-bold text-secondary transition-colors hover:text-primary"
+            >
+                <span>هل يمكنني إرجاع أو استبدال المنتج؟</span>
+                <span
+                    data-faq-icon
+                    class="text-xl text-accent transition-transform duration-300"
+                    >+</span
+                >
+            </button>
+            <div
+                class="max-h-0 overflow-hidden transition-all duration-400 ease-out"
+            >
+                <p class="px-6 pb-6 text-sm leading-relaxed text-secondary/60">
+                    نعم، نوفر سياسة إرجاع خلال يوم واحد واستبدال خلال 3 أيام من استلام المنتج،
+                    بشرط أن يكون بحالته الأصلية. يرجى التواصل معنا عبر واتساب
+                    لترتيب عملية الإرجاع أو الاستبدال.
+                </p>
+            </div>
+        </div>
+
+        <!-- FAQ 5 -->
+        <div class="glass-card reveal stagger-5 overflow-hidden">
+            <button
+                data-faq-toggle
+                aria-expanded="false"
+                class="flex w-full items-center justify-between p-6 text-right font-bold text-secondary transition-colors hover:text-primary"
+            >
+                <span>كيف أضيف منتجات إلى المفضلة؟</span>
+                <span
+                    data-faq-icon
+                    class="text-xl text-accent transition-transform duration-300"
+                    >+</span
+                >
+            </button>
+            <div
+                class="max-h-0 overflow-hidden transition-all duration-400 ease-out"
+            >
+                <p class="px-6 pb-6 text-sm leading-relaxed text-secondary/60">
+                    يمكنكِ إنشاء حساب في الموقع، ثم الضغط على زر "إضافة إلى
+                    المفضلة" في أي منتج. بعد جمع منتجاتكِ المفضلة، يمكنكِ
+                    إرسالها عبر واتساب للاستفسار عنها.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %} {% block scripts %}
+<script src="{% static 'js/slider.js' %}" defer></script>
 {% endblock %}

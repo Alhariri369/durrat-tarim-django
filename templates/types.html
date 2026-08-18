@@ -1,30 +1,92 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="container mx-auto py-12 px-4">
-    <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-accent mb-2">تصنيفات الأزياء</h1>
-        <p class="text-secondary/60 text-xl font-medium">تصفحي مجموعاتنا المختلفة واختاري ما يناسب ذوقك الرفيع</p>
+{% extends "base.html" %} {% block content %}
+<section class="mx-auto max-w-7xl px-4 py-12 md:py-20">
+    <!-- Page Header -->
+    <div class="mb-12 text-center reveal">
+        <span
+            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
+        >
+            تصنيفات الأزياء
+        </span>
+        <h1 class="text-3xl font-black text-primary md:text-5xl">تشكيلاتنا</h1>
+        <div class="mx-auto mt-4 h-1 w-20 rounded-full bg-accent/30"></div>
+        <p class="mx-auto mt-4 max-w-xl text-lg text-secondary/55">
+            اختاري المجموعة التي تناسبكِ واستكشفي أحدث التصاميم
+        </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {% for type_name in types %}
-        <div>
-            <a href="/products/types/{{ type_name }}" class="block group h-full">
-                <div class="h-full bg-surface shadow-sm border-b-4 border-accent rounded-xl text-center py-16 transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
-                    <div class="px-6">
-                        <h2 class="text-2xl font-bold text-accent mb-0 group-hover:text-primary transition-colors">
-                            {{ type_name }}
-                        </h2>
-                    </div>
+    <!-- Category Grid -->
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {% for category in categories %}
+        <a
+            href="{% url 'product-type' category.slug %}"
+            class="group glass-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden"
+            data-tilt
+        >
+            <!-- Image Container -->
+            <div class="aspect-[4/3] relative overflow-hidden bg-background">
+                {% if category.image %}
+                <img
+                    src="{{ category.image.url }}"
+                    alt="{{ category.name_ar }}"
+                    loading="lazy"
+                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                {% else %}
+                <div
+                    class="flex h-full w-full flex-col items-center justify-center text-secondary/30"
+                >
+                    <span class="text-5xl mb-2">✨</span>
+                    <span class="text-xs font-medium text-secondary/50"
+                        >لا توجد صورة</span
+                    >
                 </div>
-            </a>
-        </div>
+                {% endif %}
+
+                <!-- Hover Overlay -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                ></div>
+
+                <!-- Badge if has product count -->
+                {% if category.products_count %}
+                <span
+                    class="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-accent backdrop-blur-sm shadow-sm"
+                >
+                    {{ category.products_count }} منتج
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Category Title -->
+            <div
+                class="flex flex-1 flex-col items-center justify-center p-6 text-center"
+            >
+                <h2
+                    class="text-2xl font-black text-primary transition-colors duration-300 group-hover:text-accent"
+                >
+                    {{ category.name_ar }}
+                </h2>
+            </div>
+        </a>
         {% empty %}
-        <div class="col-span-full text-center py-20 border-2 border-dashed border-secondary/10 rounded-2xl">
-            <p class="text-secondary/40 text-xl font-medium">لا توجد تصنيفات حاليا.</p>
+        <!-- Empty State -->
+        <div
+            class="col-span-full rounded-[2.5rem] border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+        >
+            <div
+                class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-3xl text-accent"
+            >
+                👗
+            </div>
+            <h3 class="mb-2 text-xl font-bold text-secondary">
+                لا توجد تصنيفات متاحة حالياً
+            </h3>
+            <p class="mx-auto max-w-md text-sm text-secondary/50">
+                نحن نعمل على إضافة مجموعات أزياء جديدة قريباً، يرجى العودة
+                لاحقاً.
+            </p>
         </div>
         {% endfor %}
     </div>
-</div>
+</section>
 {% endblock %}

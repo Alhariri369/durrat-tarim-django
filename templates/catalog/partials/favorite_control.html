@@ -1,0 +1,47 @@
+<form
+    method="post"
+    class="w-full h-full"
+    action="{% if product.is_favorite %}{% url 'favorite-remove' product.pk %}{% else %}{% url 'favorite-add' product.pk %}{% endif %}"
+>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+    <button
+        type="submit"
+        aria-pressed="{% if product.is_favorite %}true{% else %}false{% endif %}"
+        class="group w-full rounded-lg border-2 px-3 py-2 text-xs font-bold transition-all sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-sm {% if product.is_favorite %} border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100 {% else %} border-rose-150 text-rose-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 {% endif %}"
+    >
+        <span class="flex items-center justify-center gap-1.5 sm:gap-2">
+            {% if product.is_favorite %}
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+            >
+                <path
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+            </svg>
+            <span class="hidden sm:inline">إزالة من المفضلة</span>
+            <span class="sm:hidden">محفوظ</span>
+            {% else %}
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-3.5 w-3.5 transition-transform group-hover:scale-110 sm:h-4 sm:w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+            </svg>
+            <span class="hidden sm:inline">إضافة إلى المفضلة</span>
+            <span class="sm:hidden">حفظ</span>
+            {% endif %}
+        </span>
+    </button>
+</form>
