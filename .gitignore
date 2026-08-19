@@ -15,7 +15,8 @@ uploads/
 full_plan.md
 milestone*
 plans/
-staticFiles\
+staticfiles/
+
 # Node dependencies
 node_modules/
 .vercel

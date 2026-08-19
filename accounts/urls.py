@@ -1,3 +1,4 @@
+from allauth.urls import build_provider_urlpatterns
 from django.urls import include, path
 from django.views.generic import RedirectView
 
@@ -13,4 +14,7 @@ urlpatterns = [
         RedirectView.as_view(pattern_name="account_signup", permanent=False),
     ),
     path("", include("allauth.account.urls")),
+    path("", include("allauth.socialaccount.urls")),
+    # Provider endpoints (e.g. /auth/google/login/callback/)
+    *build_provider_urlpatterns(),
 ]

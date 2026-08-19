@@ -20,6 +20,15 @@ def get_post_login_url(request, user) -> str:
     ):
         return favorite_return_url
 
+    # allauth stores the `next` query param of social logins in the session.
+    social_next_url = request.session.pop("socialaccount_next_url", None)
+    if social_next_url and url_has_allowed_host_and_scheme(
+        social_next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return social_next_url
+
     if user.is_staff:
         return reverse("dashboard")
 

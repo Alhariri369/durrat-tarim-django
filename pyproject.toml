@@ -15,4 +15,7 @@ dependencies = [
     "django-allauth>=65.0,<66",
     "Pillow>=11.0",
     "django-storages[s3]>=1.14.6",
+    "requests>=2.34.2",
+    "pyjwt[crypto]>=2.8",
+    "cryptography>=43.0",
 ]

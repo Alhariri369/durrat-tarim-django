@@ -24,6 +24,8 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "allauth",
     "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
     "accounts",
     "catalog",
     "dashboard",
@@ -137,6 +139,38 @@ ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_PREVENT_ENUMERATION = True
 ACCOUNT_RATE_LIMITS = {"login_failed": "5/300s"}
 ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
+
+# ---------- Social authentication (Google) ----------
+
+_google_apps = None
+if os.getenv("GOOGLE_CLIENT_ID") and os.getenv("GOOGLE_CLIENT_SECRET"):
+    _google_apps = [
+        {
+            "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+            "secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+            "key": "",
+        }
+    ]
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
+    }
+}
+if _google_apps:
+    SOCIALACCOUNT_PROVIDERS["google"]["APPS"] = _google_apps
+
+# One-click redirect to Google (no intermediate confirmation page)
+SOCIALACCOUNT_LOGIN_ON_GET = True
+# Log into an existing account when the Google email already matches one
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+
+# Vercel terminates TLS at the proxy — detect https from the forwarded header
+if os.getenv("VERCEL"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    USE_X_FORWARDED_HOST = True
 
 # ---------- Password validation ----------
 
