@@ -25,17 +25,23 @@ LATEST_PRODUCTS_LIMIT = 8
 
 
 def _public_products(user=None):
+    """Base queryset for every storefront view: only active products in
+    active categories, with favorite counts and the viewer's favorite flag
+    annotated so templates never need extra queries."""
     products = Product.objects.filter(
         is_active=True, category__is_active=True
     ).select_related("category")
     products = products.annotate(favorite_count=Count("favorites", distinct=True))
     if user is not None and user.is_authenticated:
+        # is_favorite=True when the current user has this product in favorites.
         products = products.annotate(
             is_favorite=Exists(
                 Favorite.objects.filter(user=user, product_id=OuterRef("pk"))
             )
         )
     else:
+        # Anonymous users get a constant False so templates can use the
+        # attribute unconditionally.
         products = products.annotate(
             is_favorite=Value(False, output_field=BooleanField())
         )
@@ -44,12 +50,15 @@ def _public_products(user=None):
 
 def _paginate(request, queryset):
     page_obj = Paginator(queryset, PRODUCTS_PER_PAGE).get_page(request.GET.get("page"))
+    # Keep every other query param (q, etc.) when building pagination links.
     query = request.GET.copy()
     query.pop("page", None)
     return page_obj, query.urlencode()
 
 
 def _safe_return_url(request, fallback="home"):
+    """Resolve a `next` param without allowing open redirects: only URLs on
+    this host (and https when the request was https) are honored."""
     candidate = request.POST.get("next") or request.GET.get("next")
     if candidate and url_has_allowed_host_and_scheme(
         candidate,
@@ -61,6 +70,9 @@ def _safe_return_url(request, fallback="home"):
 
 
 def _verified_user_redirect(request):
+    """Gate for account features (favorites): redirects anonymous users to
+    login and unverified users to email verification, remembering where they
+    came from so they land back here afterwards. Returns None when OK."""
     return_url = (
         request.get_full_path()
         if request.method == "GET" and not request.GET.get("next")
@@ -84,6 +96,8 @@ def health(request):
 
 
 def home(request):
+    """Landing page: latest products, active categories and the featured
+    slider (FeaturedProduct rows flagged in the admin)."""
     products = list(
         _public_products(request.user).order_by("-created_at", "-id")[
             :LATEST_PRODUCTS_LIMIT
@@ -142,6 +156,8 @@ def home(request):
 
 def search_products(request):
     raw_query = request.GET.get("q", request.GET.get("product_desc", "")).strip()
+    # normalize_arabic() maps alef/hamza/yaa variants so "ابيض" finds "أبيض"
+    # etc. — both the raw and normalized forms are searched.
     query = normalize_arabic(raw_query)
     products = _public_products(request.user)
     if raw_query:
@@ -227,9 +243,13 @@ def product_details(request, pk):
 
 def product_whatsapp(request, pk):
     product = get_object_or_404(_public_products(), pk=pk)
+    # Broadcast a signal so analytics code (or future listeners) can count
+    # WhatsApp clicks without modifying this view. No receiver is wired yet —
+    # tests connect to it to verify the click fires.
     product_whatsapp_clicked.send_robust(
         sender=Product, request=request, product=product
     )
+    # Redirect to wa.me with a pre-filled message about this product.
     return redirect(whatsapp_url(product_message(request, product)))
 
 
@@ -290,6 +310,8 @@ def favorites_whatsapp(request):
     auth_redirect = _verified_user_redirect(request)
     if auth_redirect:
         return auth_redirect
+    # Parse the checked product IDs from the form, dedupe (preserving order)
+    # and cap at MAX_FAVORITES_PER_MESSAGE to keep the WhatsApp message sane.
     selected_ids = []
     for value in request.POST.getlist("products"):
         try:

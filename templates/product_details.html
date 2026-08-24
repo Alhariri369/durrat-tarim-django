@@ -2,12 +2,12 @@
 <article class="mx-auto max-w-7xl px-4 py-10 md:py-16">
     <div class="grid gap-10 md:grid-cols-2 md:items-start">
         <!-- Product Image -->
-        <div >
+        <div>
             <div
                 class="overflow-hidden rounded-[3rem] border border-secondary/5 bg-surface shadow-xl"
             >
                 <img
-                    src="{{ product.image.url }}"
+                    src="{{ product.image.url }}?tr=w-1200,f-webp,q-85"
                     alt="{{ product.name_ar }}"
                     class="w-full object-cover max-h-144"
                 />
@@ -22,7 +22,7 @@
         </div>
 
         <!-- Product Details -->
-        <div class="reveal stagger-2 ">
+        <div class="reveal stagger-2">
             <!-- Breadcrumb -->
             <a
                 href="{% url 'product-type' product.category.slug %}"
@@ -39,7 +39,6 @@
 
             <!-- Price -->
             <div class="mb-8">
-              
                 <p class="text-4xl font-black text-accent md:text-5xl">
                     {{ product.price_sar|format_sar }}
                 </p>
@@ -54,7 +53,8 @@
                 <p
                     class="whitespace-pre-line text-base leading-8 text-secondary/70"
                 >
-                    {{product.description_ar|default:"لا يوجد وصف متاح لهذا المنتج."}}
+                    {{product.description_ar|default:"لا يوجد وصف متاح لهذا
+                    المنتج."}}
                 </p>
             </div>
 
@@ -76,10 +76,9 @@
                     </svg>
                     استفسار عبر واتساب
                 </a>
-                    {% include "catalog/partials/favorite_control.html" with product=product %}
+                {% include "catalog/partials/favorite_control.html" with
+                product=product %}
             </div>
-
-
         </div>
     </div>
 </article>

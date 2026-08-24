@@ -7,6 +7,9 @@ from support.models import Ticket
 
 @staff_member_required
 def dashboard(request):
+    """Simple store dashboard: staff-only summary counts shown in
+    templates/dashboard/index.html. Just a landing page — actual content
+    management happens in Django's /admin/."""
     context = {
         "total_products": Product.objects.count(),
         "total_categories": Category.objects.count(),

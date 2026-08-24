@@ -16,6 +16,8 @@ from .models import Ticket
 
 
 def _get_rate_limits():
+    """Read the spam limits from the store settings (admin-editable),
+    falling back to sane defaults if settings are unavailable."""
     try:
         settings = StoreSettings.get_current()
         cooldown = getattr(settings, "contact_cooldown_seconds", None) or 600
@@ -27,6 +29,9 @@ def _get_rate_limits():
 
 
 def _rate_limit_ok(request):
+    """Anti-spam guard for the contact form: one message per cooldown window
+    and at most daily_limit messages per day, tracked per user in the cache.
+    Returns (allowed: bool, error_message: str)."""
     cooldown, daily_limit = _get_rate_limits()
     user = request.user
     now = time.time()
@@ -60,7 +65,6 @@ def _record_rate_limit(request):
 def contact(request):
     if request.method == "GET":
         form = ContactForm()
-        print("hellllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll")
         return render(
             request,
             "contact.html",
@@ -70,7 +74,8 @@ def contact(request):
             },
         )
 
-    # --- POST: require authentication ---
+    # --- POST: only authenticated users with a verified email may submit ---
+    # (logged-out users are sent to login and come back via ?next=).
     if not request.user.is_authenticated:
         login_url = reverse("account_login")
         return redirect(f"{login_url}?{urlencode({'next': request.get_full_path()})}")
@@ -95,6 +100,8 @@ def contact(request):
         messages.error(request, rate_error)
         return redirect("contact")
 
+    # Snapshot the user's identity onto the ticket so the record stays
+    # meaningful even if they later change their name/email or get deleted.
     cd = form.cleaned_data
     user = request.user
     Ticket.objects.create(

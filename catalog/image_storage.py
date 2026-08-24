@@ -91,21 +91,34 @@ def _validate_image(file_obj):
     file_obj.seek(0)
 
 
-def _require_durable_storage():
-    """Raise RuntimeError if durable storage is not configured in production.
+# def _require_durable_storage():
+#     """Raise RuntimeError if durable storage is not configured in production.
 
-    In production (DEBUG=False), local MEDIA_ROOT under /tmp is rejected.
-    In development, local MEDIA_ROOT is acceptable.
-    """
+#     In production (DEBUG=False), local MEDIA_ROOT under /tmp is rejected.
+#     In development, local MEDIA_ROOT is acceptable.
+#     """
+#     if settings.DEBUG:
+#         return
+#     media_root = str(settings.MEDIA_ROOT)
+#     if media_root.startswith("/tmp") or media_root.startswith("/var/folders"):
+#         raise RuntimeError(
+#             "Production must use durable media storage "
+#             "(e.g. S3, Cloud Storage).  /tmp is not acceptable."
+#         )
+
+def _require_durable_storage():
+    """Reject local /tmp storage in production unless ImageKit is configured."""
     if settings.DEBUG:
+        return
+    # ImageKit is durable regardless of MEDIA_ROOT.
+    if getattr(settings, "IMAGEKIT_PRIVATE_KEY", ""):
         return
     media_root = str(settings.MEDIA_ROOT)
     if media_root.startswith("/tmp") or media_root.startswith("/var/folders"):
         raise RuntimeError(
             "Production must use durable media storage "
-            "(e.g. S3, Cloud Storage).  /tmp is not acceptable."
+            "(ImageKit, S3, Cloud Storage).  /tmp is not acceptable."
         )
-
 
 def save_image(file_obj, upload_subdir: str) -> str:
     """Validate and save an uploaded image.  Returns the storage path."""

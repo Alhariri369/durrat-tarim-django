@@ -64,7 +64,7 @@ html.dark .glass-card:hover {
 
 /* ---------- Gradient Backgrounds ---------- */
 .gradient-hero {
-  background: linear-gradient(135deg, #fdf2f8 0%, #fef7ed 30%, #fdf6f0 60%, #fdf2f0 100%);
+  background: linear-gradient(135deg, #1df2f8 0%, #fef7ed 30%, #fdf6f0 60%, #fdf2f0 100%);
 }
 
 .gradient-cta {
@@ -105,6 +105,31 @@ html.dark .gradient-soft {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/*
+ * Toast lifecycle (total 8.5s):
+ *   0% - 6%    entrance (slide up + fade in, ~0.5s)
+ *   6% - 65%   fully visible, held for ~5 seconds
+ *   65% - 100% gradual fade-out over ~3 seconds
+ *   100%       visibility: hidden (kept by fill-mode: forwards)
+ */
+@keyframes toastLifecycle {
+  0% { opacity: 0; 
+      transform: translateY(30px); 
+      visibility: visible;
+  }
+  6% { opacity: 1;
+      transform: translateY(0); }
+  65% { opacity: 1;
+      transform: translateY(0); }
+  100% { opacity: 0;
+      transform: translateY(-30px);
+      visibility: hidden;}
+}
+
+.toast-animate {
+    animation: toastLifecycle 8.5s var(--ease-out-expo) forwards;
 }
 
 @keyframes fadeInRight {
@@ -282,6 +307,11 @@ html.dark ::selection {
     animation: none;
   }
 
+  /* Keep toasts visible: instant completion would hide them (fill-mode
+     forwards ends at visibility: hidden), so disable the lifecycle. */
+  .toast-animate {
+    animation: none;
+  }
   *,
   *::before,
   *::after {

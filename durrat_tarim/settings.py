@@ -30,7 +30,6 @@ INSTALLED_APPS = [
     "catalog",
     "dashboard",
     "support",
-    "storages",
 ]
 
 SITE_ID = 1
@@ -105,11 +104,34 @@ else:
         }
     }
 
-DEFAULT_FILE_STORAGE = "storages.backends.s3.S3Storage"
-AWS_S3_ENDPOINT_URL = os.getenv("SUPABASE_S3_URL")  # from Supabase dashboard
-AWS_ACCESS_KEY_ID = os.getenv("SUPABASE_S3_KEY")
-AWS_SECRET_ACCESS_KEY = os.getenv("SUPABASE_S3_SECRET")
-AWS_STORAGE_BUCKET_NAME = "product-images"
+# old stuff
+# DEFAULT_FILE_STORAGE = "storages.backends.s3.S3Storage"
+# AWS_S3_ENDPOINT_URL = os.getenv("SUPABASE_S3_URL")  # from Supabase dashboard
+# AWS_ACCESS_KEY_ID = os.getenv("SUPABASE_S3_KEY")
+# AWS_SECRET_ACCESS_KEY = os.getenv("SUPABASE_S3_SECRET")
+# AWS_STORAGE_BUCKET_NAME = "product-images"
+
+
+# new stuff: Media storage (ImageKit) 
+# Server-side auth needs only the private key; the public key is only for
+# client-side uploads, which this project doesn't use.
+IMAGEKIT_PRIVATE_KEY = os.getenv("IMAGEKIT_PRIVATE_KEY", "")
+IMAGEKIT_URL_ENDPOINT = os.getenv("IMAGEKIT_URL_ENDPOINT", "")  # e.g. https://ik.imagekit.io/your_id
+
+STORAGES = {
+    "default": {
+        "BACKEND": "catalog.imagekit_storage.ImageKitStorage",
+    }
+    if (IMAGEKIT_PRIVATE_KEY and IMAGEKIT_URL_ENDPOINT)
+    else {
+        # Local development fallback: MEDIA_ROOT (uploads/)
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
+
 # ---------- Email ----------
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
@@ -139,6 +161,7 @@ ACCOUNT_LOGOUT_ON_GET = False
 ACCOUNT_PREVENT_ENUMERATION = True
 ACCOUNT_RATE_LIMITS = {"login_failed": "5/300s"}
 ACCOUNT_ADAPTER = "accounts.adapter.AccountAdapter"
+SOCIALACCOUNT_ADAPTER = "accounts.adapter.SocialAccountAdapter"
 
 # ---------- Social authentication (Google) ----------
 
@@ -233,7 +256,7 @@ STORAGES = {
 
 WHITENOISE_USE_FINDERS = True
 
-AWS_QUERYSTRING_AUTH = False  # no signed URLs — bucket must be public
+# AWS_QUERYSTRING_AUTH = False  # no signed URLs — bucket must be public
 
 MEDIA_URL = os.getenv("MEDIA_URL", "/uploads/")
 MEDIA_ROOT = Path(

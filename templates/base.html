@@ -3,23 +3,19 @@
 <html lang="ar" dir="rtl" class="scroll-smooth">
     <head>
         {% include 'partials/head.html' %}
-        <title>{{ page_title|default:"درة تريم للأزياء" }}</title>
-        <meta
-            name="description"
-            content="{{ meta_description|default:'تصفحي أحدث الأزياء والعبايات وتواصلي معنا مباشرة عبر واتساب.' }}"
-        />
     </head>
     <body
         class="bg-background font-tajawal text-secondary antialiased selection:bg-accent/20"
     >
-        {% include 'partials/header.html' %} {% if messages %}
+        {% include 'partials/header.html' %} 
+        {% if messages %}
         <div
-            class="fixed top-24 left-1/2 z-60 w-[90%] max-w-lg -translate-x-1/2 space-y-2"
+            class="pointer-events-none fixed top-24 left-1/2 z-60 w-[90%] max-w-lg -translate-x-1/2 space-y-2"
             aria-live="polite"
         >
             {% for message in messages %}
             <div
-                class="glass-card animate-fadeInUp rounded-2xl border-l-4 p-4 text-sm font-bold shadow-lg {% if message.tags == 'error' %}border-red-500 text-red-700{% elif message.tags == 'success' %}border-emerald-500 text-emerald-700{% else %}border-accent text-primary{% endif %}"
+                class="toast-animate pointer-events-auto glass-card rounded-2xl border-l-4 p-4 text-sm font-bold shadow-lg {% if message.tags == 'error' %}border-red-500 text-red-700{% elif message.tags == 'success' %}border-emerald-500 text-emerald-700{% else %}border-accent text-primary{% endif %}"
                 role="alert"
             >
                 {{ message }}

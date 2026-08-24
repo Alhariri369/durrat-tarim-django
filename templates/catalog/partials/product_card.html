@@ -10,7 +10,7 @@
     >
         {% if product.image %}
         <img
-            src="{{ product.image.url }}"
+            src="{{ product.image.url }}?tr=w-600,f-webp,q-80"
             alt="{{ product.name_ar }}"
             loading="lazy"
             class="h-full w-full object-cover"
