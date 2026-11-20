@@ -2,16 +2,16 @@
 <!doctype html>
 <html lang="ar" dir="rtl" class="scroll-smooth">
     <head>
-        {% include 'partials/head.html' %}
+        {% include 'partials/head.html' %} {% block extra_head %}{% endblock %}
     </head>
     <body
         class="bg-background font-tajawal text-secondary antialiased selection:bg-accent/20"
     >
-        {% include 'partials/header.html' %} 
-        {% if messages %}
+        {% include 'partials/header.html' %} {% if messages %}
         <div
             class="pointer-events-none fixed top-24 left-1/2 z-60 w-[90%] max-w-lg -translate-x-1/2 space-y-2"
             aria-live="polite"
+            
         >
             {% for message in messages %}
             <div

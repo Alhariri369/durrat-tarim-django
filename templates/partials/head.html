@@ -4,18 +4,76 @@
     name="description"
     content="{{ meta_description|default:'تصفحي أحدث الأزياء' }}"
 />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://durttrim.vercel.app" />
-<meta property="og:title" content="درة تريم للأقمشة" />
-<meta property="og:description" content="{{ meta_description|default:'تصفحي أحدث الأزياء.' }}" />
-<meta property="og:image" content="{% static 'images/logo-gold-transparent.png' %}" />
 
+<!-- Canonical URL (scheme + host + path, query string stripped) -->
+<link
+    rel="canonical"
+    href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+/>
 
-<!--Google SEO-->
-<meta name="google-site-verification" content="Nw2fa1L4QIRwROBucFvq9n1e796Zsbk0XyTbAPx4nyw" />
+<!-- Open Graph (WhatsApp / Facebook / Messenger link previews) -->
+<meta property="og:type" content="{{ og_type|default:'website' }}" />
+<meta
+    property="og:url"
+    content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+/>
+<meta property="og:site_name" content="درة تريم" />
+<meta property="og:locale" content="ar_AR" />
+<meta
+    property="og:title"
+    content="{{ page_title|default:'درة تريم للأقمشة' }}"
+/>
+<meta
+    property="og:description"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء.' }}"
+/>
+<meta
+    property="og:image"
+    content="{% if og_image %}{{ og_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo-gold-transparent.png' %}{% endif %}"
+/>
 
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta
+    name="twitter:title"
+    content="{{ page_title|default:'درة تريم للأقمشة' }}"
+/>
+<meta
+    name="twitter:description"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء.' }}"
+/>
+<meta
+    name="twitter:image"
+    content="{% if og_image %}{{ og_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo-gold-transparent.png' %}{% endif %}"
+/>
 
+<!-- Google Search Console verification -->
+<meta
+    name="google-site-verification"
+    content="Nw2fa1L4QIRwROBucFvq9n1e796Zsbk0XyTbAPx4nyw"
+/>
 
+<!-- Organization structured data (site-wide) -->
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "درة تريم",
+        "url": "{{ request.scheme }}://{{ request.get_host }}",
+        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo-gold-transparent.png' %}",
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": "+{{ site_settings.whatsapp_number|default:'967783278181' }}",
+            "contactType": "customer service",
+            "areaServed": "YE"
+        },
+        "sameAs": [
+            "https://www.instagram.com/durttrim/",
+            "https://www.snapchat.com/add/durttrim",
+            "https://www.tiktok.com/@durttrim"
+        ]
+    }
+</script>
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,8 +87,7 @@
 />
 
 <link rel="stylesheet" href="{% static 'css/animations.css' %}" />
-<link rel="stylesheet" href="{% static 'css/output.css' %}">
-    
+<link rel="stylesheet" href="{% static 'css/output.css' %}" />
 
 {% if site_settings %}
 <style>

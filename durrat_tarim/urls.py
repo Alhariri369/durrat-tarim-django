@@ -1,10 +1,31 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path
+from django.contrib.sitemaps.views import index, sitemap
+from django.http import HttpResponse
+from django.urls import include, path, reverse
 from django.views.generic import RedirectView
 
 from catalog import views as catalog_views
+from catalog.sitemaps import CategorySitemap, ProductSitemap, StaticViewSitemap
+
+sitemaps = {
+    "static": StaticViewSitemap,
+    "categories": CategorySitemap,
+    "products": ProductSitemap,
+}
+
+
+def robots_txt(request):
+    """Serve robots.txt pointing crawlers at the sitemap index."""
+    sitemap_url = request.build_absolute_uri(
+        reverse("django.contrib.sitemaps.views.index")
+    )
+    return HttpResponse(
+        f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n",
+        content_type="text/plain",
+    )
+
 
 urlpatterns = [
     path("", catalog_views.home, name="home"),
@@ -35,6 +56,19 @@ urlpatterns = [
             pattern_name="product-search", permanent=True, query_string=True
         ),
     ),
+    path(
+        "sitemap.xml",
+        index,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.index",
+    ),
+    path(
+        "sitemap-<section>.xml",
+        sitemap,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
+    path("robots.txt", robots_txt, name="robots"),
 ]
 
 if settings.DEBUG:

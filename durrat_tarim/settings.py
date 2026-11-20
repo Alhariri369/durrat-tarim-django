@@ -4,7 +4,6 @@ from pathlib import Path
 import dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-print(BASE_DIR)
 dotenv.load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
@@ -21,6 +20,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
@@ -112,11 +112,13 @@ else:
 # AWS_STORAGE_BUCKET_NAME = "product-images"
 
 
-# new stuff: Media storage (ImageKit) 
+# new stuff: Media storage (ImageKit)
 # Server-side auth needs only the private key; the public key is only for
 # client-side uploads, which this project doesn't use.
 IMAGEKIT_PRIVATE_KEY = os.getenv("IMAGEKIT_PRIVATE_KEY", "")
-IMAGEKIT_URL_ENDPOINT = os.getenv("IMAGEKIT_URL_ENDPOINT", "")  # e.g. https://ik.imagekit.io/your_id
+IMAGEKIT_URL_ENDPOINT = os.getenv(
+    "IMAGEKIT_URL_ENDPOINT", ""
+)  # e.g. https://ik.imagekit.io/your_id
 
 STORAGES = {
     "default": {
@@ -136,7 +138,10 @@ STORAGES = {
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
 RESEND_SENDER = os.getenv("RESEND_SENDER", "noreply@durrat-tarim.com")
-RESEND_TIMEOUT = int(os.getenv("RESEND_TIMEOUT", "10"))
+try:
+    RESEND_TIMEOUT = int(os.getenv("RESEND_TIMEOUT", "10"))
+except ValueError:
+    RESEND_TIMEOUT = 10
 
 if os.getenv("DJANGO_EMAIL_BACKEND"):
     EMAIL_BACKEND = os.getenv("DJANGO_EMAIL_BACKEND")
@@ -194,7 +199,20 @@ SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 if os.getenv("VERCEL"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
-
+    
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.vercel.app",
+    "https://durrat-tarim.com",
+    "https://www.durrat-tarim.com",
+]
 # ---------- Password validation ----------
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -224,37 +242,8 @@ USE_TZ = True
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3.S3Storage",
-        "OPTIONS": {
-            "bucket_name": os.getenv(
-                "SUPABASE_S3_BUCKET", os.getenv("AWS_STORAGE_BUCKET_NAME", "products")
-            ),
-            "endpoint_url": os.getenv(
-                "SUPABASE_S3_ENDPOINT", os.getenv("AWS_S3_ENDPOINT_URL")
-            ),
-            "access_key": os.getenv(
-                "SUPABASE_S3_ACCESS_KEY", os.getenv("AWS_ACCESS_KEY_ID")
-            ),
-            "secret_key": os.getenv(
-                "SUPABASE_S3_SECRET_KEY", os.getenv("AWS_SECRET_ACCESS_KEY")
-            ),
-            "default_acl": "public-read",
-            "file_overwrite": False,
-            "custom_domain": os.getenv("SUPABASE_PUBLIC_URL"),
-        },
-    }
-    if (os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("SUPABASE_S3_ACCESS_KEY"))
-    else {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
 
-WHITENOISE_USE_FINDERS = True
+WHITENOISE_USE_FINDERS = DEBUG
 
 # AWS_QUERYSTRING_AUTH = False  # no signed URLs — bucket must be public
 

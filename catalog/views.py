@@ -237,6 +237,9 @@ def product_details(request, pk):
             "product": product,
             "page_title": f"{product.name_ar} | درة تريم",
             "meta_description": (product.description_ar or product.name_ar)[:150],
+            # Product-specific Open Graph data for social share previews.
+            "og_type": "product",
+            "og_image": product.image.url if product.image else "",
         },
     )
 
