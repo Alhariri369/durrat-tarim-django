@@ -33,6 +33,55 @@ class _ImagePreviewAdminMixin:
         return _image_preview(obj)
 
 
+def _color_swatch(value):
+    """Render a hex color value as a small swatch with the value next to it."""
+    if not value:
+        return "-"
+    return format_html(
+        '<span style="display:inline-flex;align-items:center;gap:6px;'
+        'font-family:monospace;font-size:12px;">'
+        '<span style="width:18px;height:18px;border-radius:4px;'
+        'border:1px solid rgba(0,0,0,0.15);background:{};"></span>'
+        "<span>{}</span></span>",
+        value,
+        value,
+    )
+
+
+class _ColorPreviewAdminMixin:
+    """Mixin that renders read-only color swatches next to color fields."""
+
+    readonly_fields = ("light_color_preview", "dark_color_preview")
+
+    @admin.display(description="معاينة الألوان (فاتح)")
+    def light_color_preview(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+        return format_html(
+            '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+            "{}{}{}{}{}</div>",
+            _color_swatch(getattr(obj, "light_color_primary", "")),
+            _color_swatch(getattr(obj, "light_color_secondary", "")),
+            _color_swatch(getattr(obj, "light_color_accent", "")),
+            _color_swatch(getattr(obj, "light_color_background", "")),
+            _color_swatch(getattr(obj, "light_color_surface", "")),
+        )
+
+    @admin.display(description="معاينة الألوان (داكن)")
+    def dark_color_preview(self, obj):
+        if not obj or not obj.pk:
+            return "-"
+        return format_html(
+            '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+            "{}{}{}{}{}</div>",
+            _color_swatch(getattr(obj, "dark_color_primary", "")),
+            _color_swatch(getattr(obj, "dark_color_secondary", "")),
+            _color_swatch(getattr(obj, "dark_color_accent", "")),
+            _color_swatch(getattr(obj, "dark_color_background", "")),
+            _color_swatch(getattr(obj, "dark_color_surface", "")),
+        )
+
+
 # ---------------------------------------------------------------------------
 # Category
 # ---------------------------------------------------------------------------
@@ -235,7 +284,7 @@ class FeaturedProductAdmin(admin.ModelAdmin):
 
 
 @admin.register(StoreSettings)
-class StoreSettingsAdmin(admin.ModelAdmin):
+class StoreSettingsAdmin(_ColorPreviewAdminMixin, admin.ModelAdmin):
     fieldsets = (
         (
             "العملة",
@@ -258,6 +307,7 @@ class StoreSettingsAdmin(admin.ModelAdmin):
                     "light_color_accent",
                     "light_color_background",
                     "light_color_surface",
+                    "light_color_preview",
                 )
             },
         ),
@@ -270,6 +320,7 @@ class StoreSettingsAdmin(admin.ModelAdmin):
                     "dark_color_accent",
                     "dark_color_background",
                     "dark_color_surface",
+                    "dark_color_preview",
                 )
             },
         ),
@@ -287,7 +338,7 @@ class StoreSettingsAdmin(admin.ModelAdmin):
             {"fields": ("analytics_retention_days",)},
         ),
     )
-    readonly_fields = ("updated_at",)
+    readonly_fields = _ColorPreviewAdminMixin.readonly_fields + ("updated_at",)
 
     def has_add_permission(self, request):
         """Prevent creating a second settings row through the admin."""
