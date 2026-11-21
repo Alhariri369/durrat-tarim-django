@@ -80,19 +80,37 @@
     }
 </script>
 
+<!-- WebSite structured data with SearchAction for sitelinks searchbox -->
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": "{{ request.scheme }}://{{ request.get_host }}",
+        "name": "درة تريم",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}{% url 'product-search' %}?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+</script>
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+{% if site_settings %}
+<meta name="theme-color" content="{{ site_settings.light_color_background }}" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="{{ site_settings.dark_color_background }}" media="(prefers-color-scheme: dark)" />
+{% else %}
 <meta name="theme-color" content="#f6f1ee" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#08121b" media="(prefers-color-scheme: dark)" />
+{% endif %}
 
-<!-- TODO(theme): replace with dynamic token after B3/B4 -->
-
-<!-- Robots meta -->
-<meta name="robots" content="index,follow" />
-
-<!-- Noindex for search results and auth pages -->
-<!-- <meta name="robots" content="noindex"> conditional logic would be added in views -->
+<!-- Robots meta (views can set robots_content, e.g. search results = noindex) -->
+<meta name="robots" content="{{ robots_content|default:'index,follow' }}" />
 
 <!-- Hreflang placeholder for future multi-language support -->
 <!-- <link rel="alternate" hreflang="en" href="..." /> -->
