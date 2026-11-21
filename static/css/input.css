@@ -3,24 +3,49 @@
 @source "../../templates/**/*.html";
 
 @theme {
+    /* --- Font tokens (KEEP) --- */
     --font-tajawal: "Tajawal", "sans-serif";
     --font-cairo: "Cairo", "sans-serif";
-    --font-messiri: "El Messiri", "sans-serif";
+    --font-el-messiri: "El Messiri", "sans-serif";
 
-    /* Default fallback colors — overridden by CSS variables at runtime */
+    /* --- 10 Core Color Tokens — Direct Mapping to StoreSettings (light defaults) --- */
     --color-primary: #30669c;
     --color-secondary: #08121b;
     --color-accent: #e0801f;
     --color-background: #f6f1ee;
     --color-surface: #ffffff;
 
-    /* Rose palette for favorites */
+    /* --- Semantic Aliases (derived from core tokens) --- */
+    --color-text: var(--color-secondary);
+    --color-text-muted: var(--color-secondary);
+    --color-border: color-mix(in srgb, var(--color-secondary) 15%, transparent);
+    --color-border-strong: var(--color-secondary);
+    --color-focus: var(--color-accent);
+    --color-focus-ring: var(--color-accent);
+    --color-overlay: color-mix(in srgb, var(--color-background) 80%, black);
+
+    /* --- Status colors (KEEP as named — not admin-manageable) --- */
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
+    --color-info: #3b82f6;
+
+    /* --- WhatsApp brand (KEEP) --- */
+    --color-whatsapp: #25d366;
+
+    /* --- Rose palette (KEEP — 10 shades) --- */
     --color-rose-50: #fff1f2;
     --color-rose-100: #ffe4e6;
-    --color-rose-150: #fecdd3;
     --color-rose-200: #fecdd3;
     --color-rose-300: #fda4af;
     --color-rose-400: #fb7185;
     --color-rose-500: #f43f5e;
     --color-rose-600: #e11d48;
+    --color-rose-700: #be123c;
+    --color-rose-800: #9f1239;
+    --color-rose-900: #881337;
+    --color-rose-950: #4c0519;
+
+    /* Dark mode variants via CSS custom properties (html.dark selector) */
+    /* These will be overridden by inline CSS variables from StoreSettings at runtime */
 }
