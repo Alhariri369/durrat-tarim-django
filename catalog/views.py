@@ -188,6 +188,11 @@ def search_products(request):
                 else "جميع المنتجات | درة تريم"
             ),
             "meta_description": "ابحثي في منتجات درة تريم وتصفحي الأسعار بالريال السعودي واليمني.",
+            "robots_content": "noindex,follow",
+            "breadcrumbs": [
+                ("الرئيسية", "/"),
+                ("البحث", reverse("product-search")),
+            ],
         },
     )
 
@@ -203,6 +208,10 @@ def get_all_types(request):
             "categories": categories,
             "page_title": "التصنيفات | درة تريم",
             "meta_description": "تصفحي تصنيفات الأزياء والعبايات في درة تريم.",
+            "breadcrumbs": [
+                ("الرئيسية", "/"),
+                ("التصنيفات", reverse("product-types")),
+            ],
         },
     )
 
@@ -224,6 +233,11 @@ def get_type_products(request, type_name):
             "empty_message": "لا توجد منتجات متاحة في هذا التصنيف حاليا.",
             "page_title": f"{category.name_ar} | درة تريم",
             "meta_description": f"تصفحي منتجات {category.name_ar} من درة تريم.",
+            "breadcrumbs": [
+                ("الرئيسية", "/"),
+                ("التصنيفات", reverse("product-types")),
+                (category.name_ar, reverse("product-type", args=[category.slug])),
+            ],
         },
     )
 
@@ -240,6 +254,12 @@ def product_details(request, pk):
             # Product-specific Open Graph data for social share previews.
             "og_type": "product",
             "og_image": product.image.url if product.image else "",
+            "breadcrumbs": [
+                ("الرئيسية", "/"),
+                ("التصنيفات", reverse("product-types")),
+                (product.category.name_ar, product.category.get_absolute_url()),
+                (product.name_ar, product.get_absolute_url()),
+            ],
         },
     )
 

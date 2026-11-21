@@ -5,6 +5,7 @@ from pathlib import Path
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.urls import reverse
 from django.utils import timezone
 
 HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
@@ -37,6 +38,9 @@ class Category(models.Model):
         ordering = ["display_order", "name_ar"]
         verbose_name = "تصنيف"
         verbose_name_plural = "التصنيفات"
+
+    def get_absolute_url(self):
+        return reverse("product-type", args=[self.slug])
 
     def save(self, *args, **kwargs):
         self.updated_at = timezone.now()
@@ -82,6 +86,10 @@ class Product(models.Model):
                 name="price_sar_non_negative",
             ),
         ]
+
+    def get_absolute_url(self):
+        # The storefront detail URL is keyed by pk, not slug.
+        return reverse("product-detail", args=[self.pk])
 
     def save(self, *args, **kwargs):
         self.updated_at = timezone.now()
@@ -180,60 +188,70 @@ class StoreSettings(models.Model):
         max_length=7,
         default="#30669c",
         validators=[_validate_hex_color],
+        help_text="Token: --color-primary",
     )
     light_color_secondary = models.CharField(
         "اللون الثانوي (فاتح)",
         max_length=7,
         default="#08121b",
         validators=[_validate_hex_color],
+        help_text="Token: --color-secondary",
     )
     light_color_accent = models.CharField(
         "لون التمييز (فاتح)",
         max_length=7,
         default="#e0801f",
         validators=[_validate_hex_color],
+        help_text="Token: --color-accent",
     )
     light_color_background = models.CharField(
         "لون الخلفية (فاتح)",
         max_length=7,
         default="#f6f1ee",
         validators=[_validate_hex_color],
+        help_text="Token: --color-background",
     )
     light_color_surface = models.CharField(
         "لون السطح (فاتح)",
         max_length=7,
         default="#ffffff",
         validators=[_validate_hex_color],
+        help_text="Token: --color-surface",
     )
     dark_color_primary = models.CharField(
         "اللون الأساسي (داكن)",
         max_length=7,
         default="#39f2f9",
         validators=[_validate_hex_color],
+        help_text="Token: --color-primary (dark)",
     )
     dark_color_secondary = models.CharField(
         "اللون الثانوي (داكن)",
         max_length=7,
         default="#e0ebe7",
         validators=[_validate_hex_color],
+        help_text="Token: --color-secondary (dark)",
     )
     dark_color_accent = models.CharField(
         "لون التمييز (داكن)",
         max_length=7,
         default="#e7994b",
         validators=[_validate_hex_color],
+        help_text="Token: --color-accent (dark)",
     )
     dark_color_background = models.CharField(
         "لون الخلفية (داكن)",
         max_length=7,
         default="#08121b",
         validators=[_validate_hex_color],
+        help_text="Token: --color-background (dark)",
     )
     dark_color_surface = models.CharField(
         "لون السطح (داكن)",
         max_length=7,
         default="#0c1927",
         validators=[_validate_hex_color],
+        help_text="Token: --color-surface (dark)",
     )
 
     contact_cooldown_seconds = models.PositiveIntegerField(

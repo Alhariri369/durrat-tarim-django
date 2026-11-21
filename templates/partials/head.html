@@ -1,14 +1,19 @@
 ﻿{% load static %}
-<title>{{ page_title|default:"درة تريم للأقمشة" }}</title>
+<title>
+    {{ page_title|default:"درة تريم للأقمشة" }}
+    {% if product %} - {{ product.name_ar }}{% endif %}
+    {% if category %} - {{ category.name_ar }}{% endif %}
+    - درة تريم
+</title>
 <meta
     name="description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء' }}"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء'|truncatechars:160 }}"
 />
 
-<!-- Canonical URL (scheme + host + path, query string stripped) -->
+<!-- Canonical URL (scheme + host + path, query string stripped, pagination: page=1 canonical) -->
 <link
     rel="canonical"
-    href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
+    href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% if request.GET %}?page=1{% endif %}"
 />
 
 <!-- Open Graph (WhatsApp / Facebook / Messenger link previews) -->
@@ -25,7 +30,7 @@
 />
 <meta
     property="og:description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء.' }}"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء.'|truncatechars:160 }}"
 />
 <meta
     property="og:image"
@@ -40,7 +45,7 @@
 />
 <meta
     name="twitter:description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء.' }}"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء.'|truncatechars:160 }}"
 />
 <meta
     name="twitter:image"
@@ -75,9 +80,40 @@
     }
 </script>
 
+<!-- WebSite structured data with SearchAction for sitelinks searchbox -->
+<script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": "{{ request.scheme }}://{{ request.get_host }}",
+        "name": "درة تريم",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}{% url 'product-search' %}?q={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
+        }
+    }
+</script>
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="theme-color" content="#f6f1ee" />
+
+{% if site_settings %}
+<meta name="theme-color" content="{{ site_settings.light_color_background }}" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="{{ site_settings.dark_color_background }}" media="(prefers-color-scheme: dark)" />
+{% else %}
+<meta name="theme-color" content="#f6f1ee" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#08121b" media="(prefers-color-scheme: dark)" />
+{% endif %}
+
+<!-- Robots meta (views can set robots_content, e.g. search results = noindex) -->
+<meta name="robots" content="{{ robots_content|default:'index,follow' }}" />
+
+<!-- Hreflang placeholder for future multi-language support -->
+<!-- <link rel="alternate" hreflang="en" href="..." /> -->
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -89,27 +125,4 @@
 <link rel="stylesheet" href="{% static 'css/animations.css' %}" />
 <link rel="stylesheet" href="{% static 'css/output.css' %}" />
 
-{% if site_settings %}
-<style>
-    :root {
-        --color-primary: {{ site_settings.light_color_primary|default:"#30669c" }};
-        --color-secondary: {{ site_settings.light_color_secondary|default:"#08121b" }};
-        --color-accent: {{ site_settings.light_color_accent|default:"#e0801f" }};
-        --color-background: {{ site_settings.light_color_background|default:"#f6f1ee" }};
-        --color-surface: {{ site_settings.light_color_surface|default:"#ffffff" }};
-    }
-
-    html.dark {
-        --color-primary: {{ site_settings.dark_color_primary|default:"#39f2f9" }};
-        --color-secondary: {{ site_settings.dark_color_secondary|default:"#e0ebe7" }};
-        --color-accent: {{ site_settings.dark_color_accent|default:"#e7994b" }};
-        --color-background: {{ site_settings.dark_color_background|default:"#08121b" }};
-        --color-surface: {{ site_settings.dark_color_surface|default:"#0c1927" }};
-    }
-
-    body {
-        background-color: var(--color-background);
-        color: var(--color-secondary);
-    }
-</style>
-{% endif %}
+{% include 'partials/theme-variables.html' %}
