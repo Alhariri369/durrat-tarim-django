@@ -7,7 +7,7 @@ index there with one sub-sitemap per section below.
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
-from .models import Category, Product
+from .models import Category, Product, StoreSettings
 
 
 class StaticViewSitemap(Sitemap):
@@ -28,6 +28,11 @@ class StaticViewSitemap(Sitemap):
 
     def priority(self, item):
         return item[1]
+
+    def lastmod(self, item):
+        # These pages are driven by store settings; fall back to no <lastmod>
+        # rather than inventing a date when no settings row exists yet.
+        return StoreSettings.objects.values_list("updated_at", flat=True).first()
 
 
 class CategorySitemap(Sitemap):

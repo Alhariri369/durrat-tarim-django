@@ -1,13 +1,13 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.sitemaps.views import index, sitemap
 from django.http import HttpResponse
 from django.urls import include, path, reverse
 from django.views.generic import RedirectView
 
 from catalog import views as catalog_views
 from catalog.sitemaps import CategorySitemap, ProductSitemap, StaticViewSitemap
+from durrat_tarim import sitemap_views
 
 sitemaps = {
     "static": StaticViewSitemap,
@@ -17,14 +17,24 @@ sitemaps = {
 
 
 def robots_txt(request):
-    """Serve robots.txt pointing crawlers at the sitemap index."""
+    """Serve robots.txt: allow the storefront, keep private/app areas out of
+    the index, and point crawlers at the sitemap index."""
     sitemap_url = request.build_absolute_uri(
         reverse("django.contrib.sitemaps.views.index")
     )
-    return HttpResponse(
-        f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n",
-        content_type="text/plain",
-    )
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /auth/",
+        "Disallow: /dashboard/",
+        "Disallow: /favorites/",
+        "Disallow: /search/",
+        "Disallow: /*?*",
+        f"Sitemap: {sitemap_url}",
+        "",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
 
 
 urlpatterns = [
@@ -58,13 +68,13 @@ urlpatterns = [
     ),
     path(
         "sitemap.xml",
-        index,
+        sitemap_views.index,
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.index",
     ),
     path(
         "sitemap-<section>.xml",
-        sitemap,
+        sitemap_views.sitemap,
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.sitemap",
     ),
