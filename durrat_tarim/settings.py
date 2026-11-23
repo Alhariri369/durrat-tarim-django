@@ -243,7 +243,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-WHITENOISE_USE_FINDERS = DEBUG
+# Allow WhiteNoise to serve directly from STATICFILES_DIRS & app static dirs
+# on Vercel (where legacy vercel.json `builds` skips collectstatic).
+WHITENOISE_USE_FINDERS = True
 
 # AWS_QUERYSTRING_AUTH = False  # no signed URLs — bucket must be public
 
