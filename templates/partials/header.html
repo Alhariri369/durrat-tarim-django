@@ -29,7 +29,7 @@
                 />
             </span>
             <span
-                class="bg-linear-to-r from-black to-accent bg-clip-text text-transparent"
+                class="bg-linear-to-r from-secondary to-accent bg-clip-text text-transparent"
                 >درة تريم</span
             >
         </a>
@@ -124,15 +124,8 @@
                 </button>
             </form>
 
-            <!-- Theme Toggle -->
-            <button
-                id="theme-toggle"
-                type="button"
-                class="rounded-xl border-2 border-secondary/10 p-2.5 text-secondary/50 transition-all duration-300 hover:border-accent/40 hover:text-accent hover:bg-accent/5 hover:shadow-sm"
-                aria-label="تبديل الوضع"
-            >
-                🌙
-            </button>
+            {# Theme Toggle temporarily disabled — uncomment to re-enable #}
+            {# <button id="theme-toggle" type="button" class="rounded-xl border-2 border-secondary/10 p-2.5 text-secondary/50 transition-all duration-300 hover:border-accent/40 hover:text-accent hover:bg-accent/5 hover:shadow-sm" aria-label="تبديل الوضع">🌙</button> #}
 
             <!-- Auth -->
             {% if is_store_admin %}
@@ -239,13 +232,8 @@
             {% endif %}
             <hr class="my-3 border-secondary/10" />
 
-            <button
-                id="theme-toggle-mobile"
-                type="button"
-                class="mx-auto mt-1 w-full rounded-2xl border-2 border-secondary/10 py-3.5 text-sm font-bold text-secondary/70 transition-all hover:border-accent/30 hover:text-accent hover:bg-accent/5"
-            >
-                🌙 الوضع الداكن
-            </button>
+            {# Mobile theme toggle temporarily disabled — uncomment to re-enable #}
+            {# <button id="theme-toggle-mobile" type="button" class="mx-auto mt-1 w-full rounded-2xl border-2 border-secondary/10 py-3.5 text-sm font-bold text-secondary/70 transition-all hover:border-accent/30 hover:text-accent hover:bg-accent/5">🌙 الوضع الداكن</button> #}
 
             {% if is_store_admin %}
             <a

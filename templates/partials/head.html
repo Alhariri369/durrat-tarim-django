@@ -101,13 +101,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-{% if site_settings %}
-<meta name="theme-color" content="{{ site_settings.light_color_background }}" media="(prefers-color-scheme: light)" />
-<meta name="theme-color" content="{{ site_settings.dark_color_background }}" media="(prefers-color-scheme: dark)" />
-{% else %}
-<meta name="theme-color" content="#f6f1ee" media="(prefers-color-scheme: light)" />
-<meta name="theme-color" content="#08121b" media="(prefers-color-scheme: dark)" />
-{% endif %}
+<meta name="theme-color" content="{{ site_settings.light_color_background|default:'#f6f1ee' }}" />
 
 <!-- Robots meta (views can set robots_content, e.g. search results = noindex) -->
 <meta name="robots" content="{{ robots_content|default:'index,follow' }}" />

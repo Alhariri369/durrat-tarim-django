@@ -1,9 +1,17 @@
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
 from .currency import invalidate_rate_cache
 from .image_storage import handle_image_deletion, handle_image_replacement
-from .models import Category, Favorite, FeaturedProduct, Product, StoreSettings
+from .models import (
+    HEX_COLOR_RE,
+    Category,
+    Favorite,
+    FeaturedProduct,
+    Product,
+    StoreSettings,
+)
 
 
 def _image_preview(obj, field_name="image", width=80):
@@ -282,6 +290,72 @@ class FeaturedProductAdmin(admin.ModelAdmin):
 # StoreSettings (singleton — only one row allowed)
 # ---------------------------------------------------------------------------
 
+_STORE_SETTINGS_COLOR_FIELDS = frozenset(
+    {
+        "light_color_primary",
+        "light_color_secondary",
+        "light_color_accent",
+        "light_color_background",
+        "light_color_surface",
+        "dark_color_primary",
+        "dark_color_secondary",
+        "dark_color_accent",
+        "dark_color_background",
+        "dark_color_surface",
+    }
+)
+
+
+class HexColorPickerWidget(forms.TextInput):
+    """Hex color text input paired with a two-way synced native color picker."""
+
+    def __init__(self, attrs=None):
+        default_attrs = {
+            "class": "vTextField",
+            "dir": "ltr",
+            "style": "width: 9ch; font-family: monospace;",
+            "autocomplete": "off",
+            "spellcheck": "false",
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        raw_value = "" if value is None else str(value).strip()
+        picker_value = (
+            raw_value.lower() if HEX_COLOR_RE.match(raw_value) else "#000000"
+        )
+
+        text_attrs = dict(attrs) if attrs else {}
+        text_attrs["oninput"] = (
+            "var p=this.parentElement&&this.parentElement.querySelector('input[type=color]');"
+            "var v=this.value.trim();"
+            "if(p&&/^#[0-9a-fA-F]{6}$/.test(v)){p.value=v.toLowerCase();}"
+        )
+
+        text_input_html = super().render(
+            name, value, attrs=text_attrs, renderer=renderer
+        )
+        picker_oninput = (
+            "var t=this.parentElement&&this.parentElement.querySelector('input[type=text]');"
+            "if(t){t.value=this.value;}"
+        )
+
+        return format_html(
+            '<span style="display:inline-flex;align-items:center;gap:8px;vertical-align:middle;">'
+            "{}"
+            '<input type="color" value="{}" aria-label="{}" '
+            'style="width:38px;height:32px;padding:2px;border:1px solid var(--border-color, #ccc);'
+            'border-radius:4px;background:transparent;cursor:pointer;" '
+            'oninput="{}" />'
+            "</span>",
+            text_input_html,
+            picker_value,
+            name,
+            picker_oninput,
+        )
+
 
 @admin.register(StoreSettings)
 class StoreSettingsAdmin(_ColorPreviewAdminMixin, admin.ModelAdmin):
@@ -339,6 +413,11 @@ class StoreSettingsAdmin(_ColorPreviewAdminMixin, admin.ModelAdmin):
         ),
     )
     readonly_fields = _ColorPreviewAdminMixin.readonly_fields + ("updated_at",)
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name in _STORE_SETTINGS_COLOR_FIELDS:
+            kwargs["widget"] = HexColorPickerWidget()
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
 
     def has_add_permission(self, request):
         """Prevent creating a second settings row through the admin."""

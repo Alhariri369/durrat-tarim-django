@@ -35,7 +35,7 @@
             rel="noopener noreferrer"
             data-whatsapp-float
             aria-label="تواصل عبر واتساب"
-            class="fixed bottom-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-500/25 transition-all duration-500 hover:scale-110 hover:bg-emerald-600 hover:shadow-emerald-500/40 translate-y-24 opacity-0"
+            class="fixed bottom-6 left-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-xl shadow-whatsapp/25 transition-all duration-500 hover:scale-110 hover:bg-whatsapp/90 hover:shadow-whatsapp/40 translate-y-24 opacity-0"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -49,7 +49,8 @@
             </svg>
         </a>
 
-        <script src="{% static 'js/theme.js' %}" defer></script>
+        {# Dark mode temporarily disabled — uncomment to re-enable #}
+        {# <script src="{% static 'js/theme.js' %}" defer></script> #}
         <script src="{% static 'js/animations.js' %}" defer></script>
         {% block scripts %}{% endblock %}
     </body>

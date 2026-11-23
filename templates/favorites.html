@@ -20,9 +20,7 @@
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}" />
 
-        <div
-            <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-        >
+        <div class="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
             {% for product in products %}
             <div class="reveal stagger-{{ forloop.counter }}">
                 {% include "catalog/partials/product_card.html" %}
@@ -34,7 +32,7 @@
         <div class="sticky bottom-4 z-20 mt-10 text-center reveal">
             <button
                 type="submit"
-                class="inline-flex items-center gap-3 rounded-2xl bg-emerald-500 px-10 py-5 text-base font-black text-white shadow-2xl shadow-emerald-500/30 transition-all hover:bg-emerald-600 hover:shadow-emerald-500/50 hover:scale-105 active:scale-95"
+                class="inline-flex items-center gap-3 rounded-2xl bg-whatsapp px-10 py-5 text-base font-black text-white shadow-2xl shadow-whatsapp/30 transition-all hover:bg-whatsapp/90 hover:shadow-whatsapp/50 hover:scale-105 active:scale-95"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
