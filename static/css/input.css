@@ -9,11 +9,11 @@
     --font-cairo: "Cairo", "sans-serif";
     --font-el-messiri: "El Messiri", "sans-serif";
 
-    /* --- 10 Core Color Tokens — Direct Mapping to StoreSettings (light defaults) --- */
-    --color-primary: #30669c;
-    --color-secondary: #08121b;
-    --color-accent: #e0801f;
-    --color-background: #f6f1ee;
+    /* --- 10 Core Color Tokens — Direct Mapping to StoreSettings (light defaults: Lilac palette) --- */
+    --color-primary: #6b4c8c;
+    --color-secondary: #1f1629;
+    --color-accent: #a974c4;
+    --color-background: #f7f3fa;
     --color-surface: #ffffff;
 
     /* --- Semantic Aliases (derived from core tokens) --- */

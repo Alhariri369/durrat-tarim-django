@@ -186,28 +186,28 @@ class StoreSettings(models.Model):
     light_color_primary = models.CharField(
         "اللون الأساسي (فاتح)",
         max_length=7,
-        default="#30669c",
+        default="#6b4c8c",
         validators=[_validate_hex_color],
         help_text="Token: --color-primary",
     )
     light_color_secondary = models.CharField(
         "اللون الثانوي (فاتح)",
         max_length=7,
-        default="#08121b",
+        default="#1f1629",
         validators=[_validate_hex_color],
         help_text="Token: --color-secondary",
     )
     light_color_accent = models.CharField(
         "لون التمييز (فاتح)",
         max_length=7,
-        default="#e0801f",
+        default="#a974c4",
         validators=[_validate_hex_color],
         help_text="Token: --color-accent",
     )
     light_color_background = models.CharField(
         "لون الخلفية (فاتح)",
         max_length=7,
-        default="#f6f1ee",
+        default="#f7f3fa",
         validators=[_validate_hex_color],
         help_text="Token: --color-background",
     )
@@ -221,35 +221,35 @@ class StoreSettings(models.Model):
     dark_color_primary = models.CharField(
         "اللون الأساسي (داكن)",
         max_length=7,
-        default="#39f2f9",
+        default="#c9a7eb",
         validators=[_validate_hex_color],
         help_text="Token: --color-primary (dark)",
     )
     dark_color_secondary = models.CharField(
         "اللون الثانوي (داكن)",
         max_length=7,
-        default="#e0ebe7",
+        default="#efe8f7",
         validators=[_validate_hex_color],
         help_text="Token: --color-secondary (dark)",
     )
     dark_color_accent = models.CharField(
         "لون التمييز (داكن)",
         max_length=7,
-        default="#e7994b",
+        default="#d8a7f0",
         validators=[_validate_hex_color],
         help_text="Token: --color-accent (dark)",
     )
     dark_color_background = models.CharField(
         "لون الخلفية (داكن)",
         max_length=7,
-        default="#08121b",
+        default="#140d1c",
         validators=[_validate_hex_color],
         help_text="Token: --color-background (dark)",
     )
     dark_color_surface = models.CharField(
         "لون السطح (داكن)",
         max_length=7,
-        default="#0c1927",
+        default="#1e1429",
         validators=[_validate_hex_color],
         help_text="Token: --color-surface (dark)",
     )

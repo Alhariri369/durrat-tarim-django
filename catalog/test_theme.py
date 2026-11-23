@@ -16,19 +16,19 @@ from .models import StoreSettings, _validate_hex_color
 
 
 LIGHT_COLOR_DEFAULTS = {
-    "light_color_primary": "#30669c",
-    "light_color_secondary": "#08121b",
-    "light_color_accent": "#e0801f",
-    "light_color_background": "#f6f1ee",
+    "light_color_primary": "#6b4c8c",
+    "light_color_secondary": "#1f1629",
+    "light_color_accent": "#a974c4",
+    "light_color_background": "#f7f3fa",
     "light_color_surface": "#ffffff",
 }
 
 DARK_COLOR_DEFAULTS = {
-    "dark_color_primary": "#39f2f9",
-    "dark_color_secondary": "#e0ebe7",
-    "dark_color_accent": "#e7994b",
-    "dark_color_background": "#08121b",
-    "dark_color_surface": "#0c1927",
+    "dark_color_primary": "#c9a7eb",
+    "dark_color_secondary": "#efe8f7",
+    "dark_color_accent": "#d8a7f0",
+    "dark_color_background": "#140d1c",
+    "dark_color_surface": "#1e1429",
 }
 
 ALL_COLOR_DEFAULTS = {**LIGHT_COLOR_DEFAULTS, **DARK_COLOR_DEFAULTS}
@@ -220,7 +220,7 @@ class StoreSettingsAdminTests(TestCase):
     def test_saving_via_admin_invalidates_store_settings_cache(self):
         # Prime the cache first.
         cached = StoreSettings.get_current()
-        self.assertEqual(cached.light_color_primary, "#30669c")
+        self.assertEqual(cached.light_color_primary, "#6b4c8c")
 
         self.client.force_login(self.superuser)
         change_url = reverse(
@@ -271,10 +271,10 @@ class ThemeTemplateRenderTests(TestCase):
         self.assertEqual(response.status_code, 200)
         html = response.content.decode("utf-8")
 
-        self.assertIn("--color-primary: #30669c;", html)
-        self.assertIn("--color-secondary: #08121b;", html)
-        self.assertIn("--color-accent: #e0801f;", html)
-        self.assertIn("--color-background: #f6f1ee;", html)
+        self.assertIn("--color-primary: #6b4c8c;", html)
+        self.assertIn("--color-secondary: #1f1629;", html)
+        self.assertIn("--color-accent: #a974c4;", html)
+        self.assertIn("--color-background: #f7f3fa;", html)
         self.assertIn("--color-surface: #ffffff;", html)
 
         # Edit colors in DB and invalidate cache; rendered HTML must reflect updates.
