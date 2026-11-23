@@ -4,6 +4,7 @@ from allauth.account.models import EmailAddress
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import BooleanField, Count, Exists, OuterRef, Q, Value
+from django.db.models.expressions import RawSQL
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -23,14 +24,59 @@ from .whatsapp import (
 PRODUCTS_PER_PAGE = 12
 LATEST_PRODUCTS_LIMIT = 8
 
+_ACTIVE_CATEGORY_TREE_SQL = """
+products.category_id IN (
+    WITH RECURSIVE active_categories(id) AS (
+        SELECT id FROM categories
+        WHERE is_active = TRUE AND parent_id IS NULL
+        UNION
+        SELECT c.id FROM categories c
+        INNER JOIN active_categories ac ON c.parent_id = ac.id
+        WHERE c.is_active = TRUE
+    )
+    SELECT id FROM active_categories
+)
+"""
 
-def _public_products(user=None):
+
+class _ActiveCategoryTreeFilter(RawSQL):
+    """Conditional RawSQL filter enforcing that a product's entire category
+    ancestor chain is active in a single SQL query (SQLite & PostgreSQL)."""
+
+    conditional = True
+
+
+def _annotated_categories(queryset, active_ids):
+    """Annotate categories with effectively-active direct subcategory counts
+    and active direct product counts without N+1 queries."""
+    return queryset.annotate(
+        subcategories_count=Count(
+            "children",
+            filter=Q(children__id__in=active_ids),
+            distinct=True,
+        ),
+        products_count=Count(
+            "products",
+            filter=Q(products__is_active=True),
+            distinct=True,
+        ),
+    )
+
+
+def _public_products(user=None, active_category_ids=None):
     """Base queryset for every storefront view: only active products in
-    active categories, with favorite counts and the viewer's favorite flag
-    annotated so templates never need extra queries."""
-    products = Product.objects.filter(
-        is_active=True, category__is_active=True
-    ).select_related("category")
+    effectively-active categories (entire ancestor chain active), with
+    favorite counts and the viewer's favorite flag annotated in one query."""
+    if active_category_ids is not None:
+        products = Product.objects.filter(
+            is_active=True,
+            category_id__in=active_category_ids,
+        ).select_related("category")
+    else:
+        products = Product.objects.filter(
+            _ActiveCategoryTreeFilter(_ACTIVE_CATEGORY_TREE_SQL, []),
+            is_active=True,
+        ).select_related("category")
     products = products.annotate(favorite_count=Count("favorites", distinct=True))
     if user is not None and user.is_authenticated:
         # is_favorite=True when the current user has this product in favorites.
@@ -96,21 +142,23 @@ def health(request):
 
 
 def home(request):
-    """Landing page: latest products, active categories and the featured
+    """Landing page: latest products, active root categories and the featured
     slider (FeaturedProduct rows flagged in the admin)."""
+    active_ids = Category.active_category_ids()
     products = list(
-        _public_products(request.user).order_by("-created_at", "-id")[
-            :LATEST_PRODUCTS_LIMIT
-        ]
+        _public_products(request.user, active_category_ids=active_ids).order_by(
+            "-created_at", "-id"
+        )[:LATEST_PRODUCTS_LIMIT]
     )
-    categories = Category.objects.filter(is_active=True).order_by(
-        "display_order", "name_ar"
-    )
+    categories = _annotated_categories(
+        Category.objects.filter(parent__isnull=True, id__in=active_ids),
+        active_ids,
+    ).order_by("display_order", "name_ar")
     featured = list(
         FeaturedProduct.objects.filter(
             is_active=True,
             product__is_active=True,
-            product__category__is_active=True,
+            product__category_id__in=active_ids,
         )
         .select_related("product", "product__category")
         .order_by("display_order", "id")
@@ -198,9 +246,11 @@ def search_products(request):
 
 
 def get_all_types(request):
-    categories = Category.objects.filter(is_active=True).order_by(
-        "display_order", "name_ar"
-    )
+    active_ids = Category.active_category_ids()
+    categories = _annotated_categories(
+        Category.objects.filter(parent__isnull=True, id__in=active_ids),
+        active_ids,
+    ).order_by("display_order", "name_ar")
     return render(
         request,
         "types.html",
@@ -217,33 +267,75 @@ def get_all_types(request):
 
 
 def get_type_products(request, type_name):
-    category = get_object_or_404(Category, is_active=True, slug=type_name)
-    products = _public_products(request.user).filter(category=category)
-    page_obj, pagination_query = _paginate(
-        request, products.order_by("-created_at", "-id")
+    active_ids = Category.active_category_ids()
+    category = get_object_or_404(
+        Category.objects.select_related("parent"),
+        pk__in=active_ids,
+        slug=type_name,
     )
+    breadcrumbs = [
+        ("الرئيسية", "/"),
+        ("التصنيفات", reverse("product-types")),
+    ] + [
+        (c.name_ar, reverse("product-type", args=[c.slug]))
+        for c in category.get_path_categories()
+    ]
+    is_folder = category.children.exists()
+    if is_folder:
+        subcategories = list(
+            _annotated_categories(
+                Category.objects.filter(parent=category, id__in=active_ids),
+                active_ids,
+            ).order_by("display_order", "name_ar")
+        )
+        products = []
+        page_obj = None
+        pagination_query = ""
+        meta_description = (
+            f"تصفحي التصنيفات الفرعية في {category.name_ar} من درة تريم."
+        )
+    else:
+        subcategories = []
+        products_qs = _public_products(
+            request.user, active_category_ids=active_ids
+        ).filter(category=category)
+        page_obj, pagination_query = _paginate(
+            request, products_qs.order_by("-created_at", "-id")
+        )
+        products = page_obj.object_list
+        meta_description = f"تصفحي منتجات {category.name_ar} من درة تريم."
+
     return render(
         request,
         "type_products.html",
         {
-            "products": page_obj.object_list,
+            "is_folder": is_folder,
+            "subcategories": subcategories,
+            "products": products,
             "page_obj": page_obj,
             "pagination_query": pagination_query,
             "category": category,
             "empty_message": "لا توجد منتجات متاحة في هذا التصنيف حاليا.",
             "page_title": f"{category.name_ar} | درة تريم",
-            "meta_description": f"تصفحي منتجات {category.name_ar} من درة تريم.",
-            "breadcrumbs": [
-                ("الرئيسية", "/"),
-                ("التصنيفات", reverse("product-types")),
-                (category.name_ar, reverse("product-type", args=[category.slug])),
-            ],
+            "meta_description": meta_description,
+            "breadcrumbs": breadcrumbs,
         },
     )
 
 
 def product_details(request, pk):
     product = get_object_or_404(_public_products(request.user), pk=pk)
+    breadcrumbs = (
+        [
+            ("الرئيسية", "/"),
+            ("التصنيفات", reverse("product-types")),
+        ]
+        + [
+            (c.name_ar, reverse("product-type", args=[c.slug]))
+            for c in product.category.get_path_categories()
+        ]
+        + [(product.name_ar, reverse("product-detail", args=[product.pk]))]
+    )
     return render(
         request,
         "product_details.html",
@@ -254,12 +346,7 @@ def product_details(request, pk):
             # Product-specific Open Graph data for social share previews.
             "og_type": "product",
             "og_image": product.image.url if product.image else "",
-            "breadcrumbs": [
-                ("الرئيسية", "/"),
-                ("التصنيفات", reverse("product-types")),
-                (product.category.name_ar, product.category.get_absolute_url()),
-                (product.name_ar, product.get_absolute_url()),
-            ],
+            "breadcrumbs": breadcrumbs,
         },
     )
 

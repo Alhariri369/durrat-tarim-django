@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% load catalog_tags %} {% block content %}
+{% extends "base.html" %} {% load static catalog_tags %} {% block content %}
 {% product_json_ld product %}
 {% breadcrumb_json_ld breadcrumbs %}
 <article class="mx-auto max-w-7xl px-4 py-10 md:py-16">
@@ -6,13 +6,22 @@
         <!-- Product Image -->
         <div>
             <div
-                class="overflow-hidden rounded-[3rem] border border-secondary/5 bg-surface shadow-xl"
+                class="relative overflow-hidden rounded-[3rem] border border-secondary/5 bg-surface shadow-xl"
             >
+                {% if product.image %}
                 <img
                     src="{{ product.image.url }}?tr=w-1200,f-webp,q-85"
                     alt="{{ product.name_ar }}"
+                    onerror="this.onerror=null;this.src='{% static 'images/product-placeholder.svg' %}';"
                     class="w-full object-cover max-h-144"
                 />
+                {% else %}
+                <img
+                    src="{% static 'images/product-placeholder.svg' %}"
+                    alt="{{ product.name_ar }}"
+                    class="w-full object-cover max-h-144"
+                />
+                {% endif %}
                 <!-- Decorative corner accent -->
                 <div
                     class="absolute -bottom-4 -right-4 h-28 w-28 rounded-full bg-accent/10 blur-2xl"
@@ -25,13 +34,30 @@
 
         <!-- Product Details -->
         <div class="reveal stagger-2">
-            <!-- Breadcrumb -->
-            <a
-                href="{% url 'product-type' product.category.slug %}"
-                class="inline-flex items-center gap-2 rounded-full bg-accent/5 px-4 py-1.5 text-sm font-bold text-accent transition-colors hover:bg-accent/10"
+            <!-- Breadcrumb Trail -->
+            <nav
+                aria-label="مسار التنقل"
+                class="mb-4 flex flex-wrap items-center gap-2 text-xs font-bold"
             >
-                {{ product.category.name_ar }}
-            </a>
+                {% for crumb_name, crumb_url in breadcrumbs %}
+                {% if not forloop.last %}
+                <a
+                    href="{{ crumb_url }}"
+                    class="inline-flex items-center rounded-full bg-accent/5 px-3.5 py-1.5 text-accent transition-colors hover:bg-accent/15"
+                >
+                    {{ crumb_name }}
+                </a>
+                <span class="text-secondary/30" aria-hidden="true">/</span>
+                {% else %}
+                <span
+                    aria-current="page"
+                    class="inline-flex items-center rounded-full bg-secondary/5 px-3.5 py-1.5 text-secondary/70"
+                >
+                    {{ crumb_name }}
+                </span>
+                {% endif %}
+                {% endfor %}
+            </nav>
 
             <h1
                 class="my-5 text-3xl font-black text-primary md:text-4xl lg:text-5xl"

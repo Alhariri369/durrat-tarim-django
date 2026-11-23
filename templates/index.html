@@ -82,13 +82,36 @@
             class="group glass-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden"
             data-tilt
         >
-            <div class="aspect-square overflow-hidden bg-background">
+            <div class="relative aspect-square overflow-hidden bg-background">
+                {% if category.image %}
                 <img
                     src="{{ category.image.url }}?tr=w-600,f-webp,q-80"
                     alt="{{ category.name_ar }}"
                     loading="lazy"
+                    onerror="this.onerror=null;this.src='{% static 'images/product-placeholder.svg' %}';"
                     class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
                 />
+                {% else %}
+                <img
+                    src="{% static 'images/product-placeholder.svg' %}"
+                    alt="{{ category.name_ar }}"
+                    loading="lazy"
+                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                {% endif %}
+                {% if category.subcategories_count %}
+                <span
+                    class="absolute left-3 top-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-bold text-primary backdrop-blur-sm shadow-sm"
+                >
+                    {{ category.subcategories_count }} تصنيف فرعي
+                </span>
+                {% elif category.products_count %}
+                <span
+                    class="absolute left-3 top-3 rounded-full bg-surface/90 px-2.5 py-1 text-xs font-bold text-accent backdrop-blur-sm shadow-sm"
+                >
+                    {{ category.products_count }} منتج
+                </span>
+                {% endif %}
             </div>
             <div class="p-5 text-center">
                 <h3

@@ -51,31 +51,47 @@ def product_json_ld(context, product):
         },
     }
     if product.category_id:
-        data["category"] = product.category.name_ar
+        data["category"] = product.category.full_path
     if product.image:
         data["image"] = [_absolute_uri(request, product.image.url)]
     return {"json_ld": _json_ld(data)}
 
 
 @register.inclusion_tag("catalog/partials/category_json_ld.html", takes_context=True)
-def category_json_ld(context, category, products=None):
+def category_json_ld(context, category, products=None, subcategories=None):
     """Render CollectionPage JSON-LD.
-    Usage: {% category_json_ld category products %}"""
+    Usage:
+      {% category_json_ld category products %}
+      {% category_json_ld category subcategories=subcategories %}
+    """
     request = context["request"]
-    if products is None:
-        products = category.products.filter(is_active=True)[:20]
     items = []
-    for position, product in enumerate(products, start=1):
-        items.append(
-            {
-                "@type": "ListItem",
-                "position": position,
-                "name": product.name_ar,
-                "url": _absolute_uri(
-                    request, reverse("product-detail", args=[product.pk])
-                ),
-            }
-        )
+    if subcategories is not None:
+        for position, subcategory in enumerate(subcategories, start=1):
+            items.append(
+                {
+                    "@type": "ListItem",
+                    "position": position,
+                    "name": subcategory.name_ar,
+                    "url": _absolute_uri(
+                        request, reverse("product-type", args=[subcategory.slug])
+                    ),
+                }
+            )
+    else:
+        if products is None:
+            products = category.products.filter(is_active=True)[:20]
+        for position, product in enumerate(products, start=1):
+            items.append(
+                {
+                    "@type": "ListItem",
+                    "position": position,
+                    "name": product.name_ar,
+                    "url": _absolute_uri(
+                        request, reverse("product-detail", args=[product.pk])
+                    ),
+                }
+            )
     data = {
         "@context": "https://schema.org",
         "@type": "CollectionPage",

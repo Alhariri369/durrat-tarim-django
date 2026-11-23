@@ -40,7 +40,8 @@ class CategorySitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return Category.objects.filter(is_active=True).order_by("pk")
+        active_ids = Category.active_category_ids()
+        return Category.objects.filter(pk__in=active_ids).order_by("pk")
 
     def location(self, obj):
         return reverse("product-type", kwargs={"type_name": obj.slug})
@@ -55,8 +56,9 @@ class ProductSitemap(Sitemap):
     priority = 0.9
 
     def items(self):
+        active_ids = Category.active_category_ids()
         return (
-            Product.objects.filter(is_active=True, category__is_active=True)
+            Product.objects.filter(is_active=True, category_id__in=active_ids)
             .select_related("category")
             .order_by("pk")
         )

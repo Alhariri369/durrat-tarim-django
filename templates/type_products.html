@@ -1,7 +1,36 @@
-{% extends "base.html" %} {% load catalog_tags %} {% block content %}
+{% extends "base.html" %} {% load static catalog_tags %} {% block content %}
+{% if is_folder %}
+{% category_json_ld category subcategories=subcategories %}
+{% else %}
 {% category_json_ld category products %}
+{% endif %}
 {% breadcrumb_json_ld breadcrumbs %}
 <section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
+    <!-- Breadcrumb Bar -->
+    <nav
+        aria-label="مسار التنقل"
+        class="mb-6 flex flex-wrap items-center gap-2 text-xs font-bold reveal"
+    >
+        {% for crumb_name, crumb_url in breadcrumbs %}
+        {% if not forloop.last %}
+        <a
+            href="{{ crumb_url }}"
+            class="inline-flex items-center rounded-full bg-accent/5 px-3.5 py-1.5 text-accent transition-colors hover:bg-accent/15"
+        >
+            {{ crumb_name }}
+        </a>
+        <span class="text-secondary/30" aria-hidden="true">/</span>
+        {% else %}
+        <span
+            aria-current="page"
+            class="inline-flex items-center rounded-full bg-secondary/5 px-3.5 py-1.5 text-secondary/70"
+        >
+            {{ crumb_name }}
+        </span>
+        {% endif %}
+        {% endfor %}
+    </nav>
+
     <!-- Header -->
     <div
         class="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-secondary/5 pb-6 reveal"
@@ -10,15 +39,41 @@
             <span
                 class="mb-2 inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-bold tracking-wide text-accent"
             >
-                {{ category.name_ar }}
+                {% if category.parent %}{{ category.parent.name_ar }}{% else %}{{ category.name_ar }}{% endif %}
             </span>
             <h1 class="text-3xl font-black text-primary md:text-4xl">
                 {{ category.name_ar }}
             </h1>
             <p class="mt-2 text-secondary/50">
+                {% if is_folder %}
+                اختاري التصنيف الفرعي المناسب لاستكشاف التشكيلة
+                {% else %}
                 جميع المنتجات المتاحة في هذا التصنيف
+                {% endif %}
             </p>
         </div>
+        {% if category.parent %}
+        <a
+            href="{% url 'product-type' category.parent.slug %}"
+            class="inline-flex items-center gap-2 rounded-2xl border-2 border-secondary/10 px-5 py-2.5 text-sm font-bold text-secondary transition-all hover:border-accent/30 hover:text-accent"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+            >
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15 19l-7-7 7-7"
+                />
+            </svg>
+            العودة إلى {{ category.parent.name_ar }}
+        </a>
+        {% else %}
         <a
             href="{% url 'product-types' %}"
             class="inline-flex items-center gap-2 rounded-2xl border-2 border-secondary/10 px-5 py-2.5 text-sm font-bold text-secondary transition-all hover:border-accent/30 hover:text-accent"
@@ -39,12 +94,94 @@
             </svg>
             جميع التصنيفات
         </a>
+        {% endif %}
     </div>
 
-    <!-- Products Grid -->
+    {% if is_folder %}
+    <!-- Subcategories Folder Drill-Down Grid -->
+    <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {% for sub in subcategories %}
+        <a
+            href="{% url 'product-type' sub.slug %}"
+            class="group glass-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden"
+            data-tilt
+        >
+            <!-- Image Container -->
+            <div class="aspect-[4/3] relative overflow-hidden bg-background">
+                {% if sub.image %}
+                <img
+                    src="{{ sub.image.url }}?tr=w-900,f-webp,q-80"
+                    alt="{{ sub.name_ar }}"
+                    loading="lazy"
+                    onerror="this.onerror=null;this.src='{% static 'images/product-placeholder.svg' %}';"
+                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                {% else %}
+                <img
+                    src="{% static 'images/product-placeholder.svg' %}"
+                    alt="{{ sub.name_ar }}"
+                    loading="lazy"
+                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                />
+                {% endif %}
+
+                <!-- Hover Overlay -->
+                <div
+                    class="absolute inset-0 bg-gradient-to-t from-secondary/50 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                ></div>
+
+                <!-- Badge: subcategories count for nested folder, product count for leaf -->
+                {% if sub.subcategories_count %}
+                <span
+                    class="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-primary backdrop-blur-sm shadow-sm"
+                >
+                    {{ sub.subcategories_count }} تصنيف فرعي
+                </span>
+                {% elif sub.products_count %}
+                <span
+                    class="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-accent backdrop-blur-sm shadow-sm"
+                >
+                    {{ sub.products_count }} منتج
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Subcategory Title -->
+            <div
+                class="flex flex-1 flex-col items-center justify-center p-6 text-center"
+            >
+                <h2
+                    class="text-2xl font-black text-primary transition-colors duration-300 group-hover:text-accent"
+                >
+                    {{ sub.name_ar }}
+                </h2>
+            </div>
+        </a>
+        {% empty %}
+        <!-- Friendly Empty Subcategories State -->
+        <div
+            class="col-span-full rounded-[2.5rem] border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+        >
+            <div
+                class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-3xl text-accent"
+            >
+                📂
+            </div>
+            <h2 class="mb-2 text-xl font-bold text-secondary">
+                لا توجد تصنيفات فرعية متاحة حالياً
+            </h2>
+            <p class="mx-auto max-w-md text-sm text-secondary/50">
+                نعمل على تجهيز تصنيفات جديدة داخل هذا القسم قريباً، يرجى العودة لاحقاً.
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Products Grid (Leaf Category) -->
     <div>{% include "catalog/partials/product_grid.html" %}</div>
 
     <!-- Pagination -->
     <div>{% include "catalog/partials/pagination.html" %}</div>
+    {% endif %}
 </section>
 {% endblock %}

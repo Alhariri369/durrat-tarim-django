@@ -22,6 +22,14 @@ def _validate_hex_color(value):
 
 
 class Category(models.Model):
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="children",
+        verbose_name="التصنيف الأب",
+    )
     name_ar = models.CharField("الاسم (عربي)", max_length=200, db_index=True)
     name_en = models.CharField(
         "الاسم (إنجليزي)", max_length=200, blank=True, default=""
@@ -39,10 +47,195 @@ class Category(models.Model):
         verbose_name = "تصنيف"
         verbose_name_plural = "التصنيفات"
 
+    @property
+    def is_root(self):
+        return self.parent_id is None
+
+    @property
+    def is_leaf(self):
+        annotated = getattr(self, "_children_count", None)
+        if annotated is not None:
+            return annotated == 0
+        if self.pk is None:
+            return True
+        return not self.children.exists()
+
+    def get_ancestors(self):
+        ancestors = []
+        visited = set()
+        if self.pk is not None:
+            visited.add(self.pk)
+        current = self.parent
+        while current is not None:
+            if current.pk is not None:
+                if current.pk in visited:
+                    break
+                visited.add(current.pk)
+            ancestors.append(current)
+            current = current.parent
+        ancestors.reverse()
+        return ancestors
+
+    def get_path_categories(self):
+        return self.get_ancestors() + [self]
+
+    @property
+    def full_path(self):
+        return " / ".join(c.name_ar for c in self.get_path_categories())
+
+    @property
+    def depth(self):
+        return len(self.get_ancestors())
+
+    @classmethod
+    def active_category_ids(cls):
+        rows = cls.objects.values_list("id", "parent_id", "is_active")
+        nodes = {
+            cat_id: (parent_id, is_active)
+            for cat_id, parent_id, is_active in rows
+        }
+        memo = {}
+
+        def is_chain_active(cat_id):
+            if cat_id in memo:
+                return memo[cat_id]
+            visited = set()
+            path = []
+            curr = cat_id
+            result = True
+            while curr is not None:
+                if curr in memo:
+                    result = memo[curr]
+                    break
+                if curr in visited:
+                    result = False
+                    break
+                node = nodes.get(curr)
+                if node is None:
+                    result = False
+                    break
+                visited.add(curr)
+                path.append(curr)
+                parent_id, active = node
+                if not active:
+                    result = False
+                    break
+                curr = parent_id
+            for node_id in path:
+                memo[node_id] = result
+            return result
+
+        return {cat_id for cat_id in nodes if is_chain_active(cat_id)}
+
+    @classmethod
+    def leaf_queryset(cls):
+        return cls.objects.filter(children__isnull=True)
+
+    @classmethod
+    def tree_ordered_categories(cls, queryset=None):
+        if queryset is None:
+            cats = list(cls.objects.select_related("parent"))
+        else:
+            cats = list(queryset)
+        if not cats:
+            return []
+
+        by_id = {c.pk: c for c in cats}
+        has_missing_parent = any(
+            c.parent_id is not None and c.parent_id not in by_id for c in cats
+        )
+
+        if not has_missing_parent:
+            children_map = {}
+            for c in cats:
+                children_map.setdefault(c.parent_id, []).append(c)
+            for siblings in children_map.values():
+                siblings.sort(key=lambda c: (c.display_order, c.name_ar, c.pk or 0))
+
+            ordered = []
+            visited = set()
+
+            def dfs(parent_id):
+                for child in children_map.get(parent_id, ()):
+                    if child.pk in visited:
+                        continue
+                    visited.add(child.pk)
+                    ordered.append(child)
+                    dfs(child.pk)
+
+            dfs(None)
+            if len(ordered) < len(cats):
+                remaining = [c for c in cats if c.pk not in visited]
+                remaining.sort(key=lambda c: (c.display_order, c.name_ar, c.pk or 0))
+                ordered.extend(remaining)
+            return ordered
+
+        rows = cls.objects.values_list("id", "parent_id", "display_order", "name_ar")
+        all_children = {}
+        for cat_id, parent_id, display_order, name_ar in rows:
+            all_children.setdefault(parent_id, []).append(
+                (display_order, name_ar, cat_id)
+            )
+        for siblings in all_children.values():
+            siblings.sort()
+
+        ordered = []
+        visited = set()
+
+        def dfs_ids(parent_id):
+            for _, _, cat_id in all_children.get(parent_id, ()):
+                if cat_id in visited:
+                    continue
+                visited.add(cat_id)
+                if cat_id in by_id:
+                    ordered.append(by_id[cat_id])
+                dfs_ids(cat_id)
+
+        dfs_ids(None)
+        if len(ordered) < len(cats):
+            included = {c.pk for c in ordered}
+            remaining = [c for c in cats if c.pk not in included]
+            remaining.sort(key=lambda c: (c.display_order, c.name_ar, c.pk or 0))
+            ordered.extend(remaining)
+        return ordered
+
     def get_absolute_url(self):
         return reverse("product-type", args=[self.slug])
 
+    def clean(self):
+        super().clean()
+        if self._state.fields_cache.get("parent") is self:
+            raise ValidationError({"parent": "لا يمكن أن يكون التصنيف أباً لنفسه."})
+        if self.parent_id is not None:
+            if self.pk is not None and self.parent_id == self.pk:
+                raise ValidationError({"parent": "لا يمكن أن يكون التصنيف أباً لنفسه."})
+            if self.pk is not None:
+                visited = {self.pk}
+                current_id = self.parent_id
+                while current_id is not None:
+                    if current_id == self.pk:
+                        raise ValidationError(
+                            {
+                                "parent": "لا يمكن جعل التصنيف أباً لأحد فروعه (حلقة مفرغة)."
+                            }
+                        )
+                    if current_id in visited:
+                        break
+                    visited.add(current_id)
+                    current_id = (
+                        Category.objects.filter(pk=current_id)
+                        .values_list("parent_id", flat=True)
+                        .first()
+                    )
+            if Product.objects.filter(category_id=self.parent_id).exists():
+                raise ValidationError(
+                    {
+                        "parent": "لا يمكن إضافة تصنيف فرعي داخل تصنيف يحتوي على منتجات. يرجى نقل المنتجات أو حذفها أولاً."
+                    }
+                )
+
     def save(self, *args, **kwargs):
+        self.clean()
         self.updated_at = timezone.now()
         super().save(*args, **kwargs)
 
@@ -91,7 +284,20 @@ class Product(models.Model):
         # The storefront detail URL is keyed by pk, not slug.
         return reverse("product-detail", args=[self.pk])
 
+    def clean(self):
+        super().clean()
+        if (
+            self.category_id is not None
+            and Category.objects.filter(parent_id=self.category_id).exists()
+        ):
+            raise ValidationError(
+                {
+                    "category": "لا يمكن إضافة المنتج إلى تصنيف أب. يرجى اختيار تصنيف نهائي لا يحتوي على تصنيفات فرعية."
+                }
+            )
+
     def save(self, *args, **kwargs):
+        self.clean()
         self.updated_at = timezone.now()
         super().save(*args, **kwargs)
 
