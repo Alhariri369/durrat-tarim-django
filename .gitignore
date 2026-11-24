@@ -22,3 +22,5 @@ staticfiles/
 # Node dependencies
 node_modules/
 .vercel
+.superdesign/
+.coverage

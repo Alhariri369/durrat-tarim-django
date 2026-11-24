@@ -102,10 +102,10 @@ def sitemap(
                     latest = _latest_lastmod(latest, lastmod)
                 else:
                     all_lastmod = False
-        except EmptyPage:
-            raise Http404(f"Page {page} empty")
-        except PageNotAnInteger:
-            raise Http404(f"No page '{page}'")
+        except EmptyPage as err:
+            raise Http404(f"Page {page} empty") from err
+        except PageNotAnInteger as err:
+            raise Http404(f"No page '{page}'") from err
 
     headers = {"Last-Modified": http_date(latest.timestamp())} if all_lastmod and latest else None
     response = TemplateResponse(

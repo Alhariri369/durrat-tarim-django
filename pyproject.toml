@@ -19,3 +19,17 @@ dependencies = [
     "pyjwt[crypto]>=2.8",
     "cryptography>=43.0",
 ]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.17.5",
+    "ruff>=0.17.6",
+]
+
+[tool.ruff]
+extend-exclude = ["*/migrations/*", "staticfiles"]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "B"]
+ignore = ["E501"]

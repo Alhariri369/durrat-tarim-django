@@ -1,11 +1,16 @@
 import re
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
 from django.core import mail
-from django.test import TestCase, override_settings
+from django.core.cache import cache
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 
+from .adapter import AccountAdapter, SocialAccountAdapter
 from .models import User
+from .redirects import get_post_login_url
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
@@ -238,3 +243,317 @@ class AccessControlTests(TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get("/admin/")
         self.assertEqual(response.status_code, 200)
+
+
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+class OpenRedirectAndAuthEdgeCaseTests(TestCase):
+    password = "Zebra-Planet-8462"
+
+    def setUp(self):
+        cache.clear()
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            email="customer@example.com",
+            password=self.password,
+            full_name="Customer User",
+        )
+        EmailAddress.objects.create(
+            user=self.user, email=self.user.email, verified=True, primary=True
+        )
+        self.staff = User.objects.create_user(
+            email="staff-edge@example.com",
+            password=self.password,
+            full_name="Staff User",
+            is_staff=True,
+        )
+        EmailAddress.objects.create(
+            user=self.staff, email=self.staff.email, verified=True, primary=True
+        )
+
+    def tearDown(self):
+        cache.clear()
+
+    def test_login_blocks_open_redirect_variants(self):
+        malicious_targets = [
+            "//evil.example.com/phish",
+            "https://evil.example.com/login",
+            "http://evil.example.com/",
+            "javascript:alert(1)",
+            "///evil.example.com",
+        ]
+        for bad_next in malicious_targets:
+            with self.subTest(next_url=bad_next):
+                self.client.logout()
+                response = self.client.post(
+                    reverse("account_login"),
+                    {
+                        "email": self.user.email,
+                        "password": self.password,
+                        "next": bad_next,
+                    },
+                )
+                self.assertRedirects(response, reverse("home"))
+
+    def test_authenticated_user_on_login_and_signup_blocks_external_next(self):
+        self.client.force_login(self.user)
+
+        resp_login_bad = self.client.get(
+            f"{reverse('account_login')}?next=https://evil.example.com"
+        )
+        self.assertRedirects(resp_login_bad, reverse("home"))
+
+        resp_login_safe = self.client.get(
+            f"{reverse('account_login')}?next={reverse('contact')}"
+        )
+        self.assertRedirects(
+            resp_login_safe, reverse("contact"), fetch_redirect_response=False
+        )
+
+        resp_signup_bad = self.client.get(
+            f"{reverse('account_signup')}?next=//evil.example.com"
+        )
+        self.assertRedirects(resp_signup_bad, reverse("home"))
+
+    def test_get_post_login_url_session_fallbacks_and_open_redirect_guards(self):
+        # Safe favorite_return_url is honored and popped
+        req = self.factory.get("/auth/login/")
+        req.session = {"favorite_return_url": "/favorites/"}
+        self.assertEqual(get_post_login_url(req, self.user), "/favorites/")
+        self.assertNotIn("favorite_return_url", req.session)
+
+        # Unsafe favorite_return_url is ignored and popped
+        req_bad_fav = self.factory.get("/auth/login/")
+        req_bad_fav.session = {"favorite_return_url": "https://evil.example.com/steal"}
+        self.assertEqual(get_post_login_url(req_bad_fav, self.user), reverse("home"))
+        self.assertNotIn("favorite_return_url", req_bad_fav.session)
+
+        # Safe socialaccount_next_url is honored and popped
+        req_social = self.factory.get("/auth/google/login/callback/")
+        req_social.session = {"socialaccount_next_url": "/contact/"}
+        self.assertEqual(get_post_login_url(req_social, self.user), "/contact/")
+        self.assertNotIn("socialaccount_next_url", req_social.session)
+
+        # Unsafe socialaccount_next_url falls back to dashboard for staff
+        req_social_bad = self.factory.get("/auth/google/login/callback/")
+        req_social_bad.session = {"socialaccount_next_url": "//evil.example.com"}
+        self.assertEqual(
+            get_post_login_url(req_social_bad, self.staff), reverse("dashboard")
+        )
+        self.assertNotIn("socialaccount_next_url", req_social_bad.session)
+
+        # Explicit safe ?next overrides and clears favorite_return_url
+        req_priority = self.factory.post("/auth/login/", {"next": "/contact/"})
+        req_priority.session = {"favorite_return_url": "/favorites/"}
+        self.assertEqual(get_post_login_url(req_priority, self.user), "/contact/")
+        self.assertNotIn("favorite_return_url", req_priority.session)
+
+    def test_login_case_insensitive_email_and_brute_force_lockout(self):
+        # 5 failed attempts return 401; 6th returns 429
+        for _ in range(5):
+            resp = self.client.post(
+                reverse("account_login"),
+                {"email": self.user.email, "password": "wrong-password"},
+            )
+            self.assertEqual(resp.status_code, 401)
+
+        locked = self.client.post(
+            reverse("account_login"),
+            {"email": self.user.email, "password": self.password},
+        )
+        self.assertEqual(locked.status_code, 429)
+
+        # After cache clears, uppercase email succeeds
+        cache.clear()
+        ok = self.client.post(
+            reverse("account_login"),
+            {"email": self.user.email.upper(), "password": self.password},
+        )
+        self.assertRedirects(ok, reverse("home"))
+
+    def test_inactive_user_cannot_log_in(self):
+        inactive = User.objects.create_user(
+            email="inactive@example.com",
+            password=self.password,
+            is_active=False,
+        )
+        EmailAddress.objects.create(
+            user=inactive, email=inactive.email, verified=True, primary=True
+        )
+
+        resp = self.client.post(
+            reverse("account_login"),
+            {"email": inactive.email, "password": self.password},
+        )
+        self.assertEqual(resp.status_code, 401)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_unverified_login_stores_next_in_session(self):
+        unverified = User.objects.create_user(
+            email="unverified-next@example.com", password=self.password
+        )
+        EmailAddress.objects.create(
+            user=unverified, email=unverified.email, verified=False, primary=True
+        )
+
+        resp = self.client.post(
+            reverse("account_login"),
+            {
+                "email": unverified.email,
+                "password": self.password,
+                "next": "/favorites/",
+            },
+        )
+        self.assertRedirects(
+            resp,
+            reverse("account_email_verification_sent"),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(self.client.session.get("favorite_return_url"), "/favorites/")
+
+    def test_register_validation_errors_and_email_failure_rollback(self):
+        # Missing required fields
+        r_missing = self.client.post(reverse("account_signup"), {"email": ""})
+        self.assertEqual(r_missing.status_code, 400)
+
+        # Invalid email
+        r_email = self.client.post(
+            reverse("account_signup"),
+            {
+                "email": "not-an-email",
+                "full_name": "Test",
+                "password1": self.password,
+                "password2": self.password,
+            },
+        )
+        self.assertEqual(r_email.status_code, 400)
+
+        # Weak password
+        r_weak = self.client.post(
+            reverse("account_signup"),
+            {
+                "email": "weak@example.com",
+                "full_name": "Test",
+                "password1": "123",
+                "password2": "123",
+            },
+        )
+        self.assertEqual(r_weak.status_code, 400)
+
+        # Email send failure rolls back user & EmailAddress and returns 503
+        with (
+            patch.object(
+                EmailAddress,
+                "send_confirmation",
+                side_effect=RuntimeError("SMTP unavailable"),
+            ),
+            self.assertLogs("accounts.views", level="ERROR"),
+        ):
+            r_fail = self.client.post(
+                reverse("account_signup"),
+                {
+                    "email": "rollback@example.com",
+                    "full_name": "Rollback User",
+                    "password1": self.password,
+                    "password2": self.password,
+                },
+            )
+        self.assertEqual(r_fail.status_code, 503)
+        self.assertFalse(User.objects.filter(email="rollback@example.com").exists())
+        self.assertFalse(
+            EmailAddress.objects.filter(email="rollback@example.com").exists()
+        )
+
+    def test_logout_clears_session_and_legacy_cookies(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("account_logout"))
+
+        self.assertRedirects(response, reverse("home"))
+        self.assertNotIn("_auth_user_id", self.client.session)
+        for cookie_name in ("user_session", "admin_session", "username"):
+            self.assertIn(cookie_name, response.cookies)
+            self.assertEqual(response.cookies[cookie_name]["max-age"], 0)
+
+
+class AccountAndSocialAdapterTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = User.objects.create_user(
+            email="adapter-user@example.com",
+            password="Zebra-Planet-8462",
+            full_name="Adapter User",
+        )
+        self.staff = User.objects.create_user(
+            email="adapter-staff@example.com",
+            password="Zebra-Planet-8462",
+            full_name="Adapter Staff",
+            is_staff=True,
+        )
+
+    def test_account_adapter_get_login_redirect_url(self):
+        adapter = AccountAdapter()
+
+        req_safe = self.factory.get("/auth/login/?next=/contact/")
+        req_safe.user = self.user
+        req_safe.session = {}
+        self.assertEqual(adapter.get_login_redirect_url(req_safe), "/contact/")
+
+        req_unsafe = self.factory.get("/auth/login/?next=https://evil.example.com")
+        req_unsafe.user = self.staff
+        req_unsafe.session = {}
+        self.assertEqual(
+            adapter.get_login_redirect_url(req_unsafe), reverse("dashboard")
+        )
+
+    def test_social_adapter_populate_user_sets_full_name(self):
+        adapter = SocialAccountAdapter()
+        req = self.factory.get("/auth/google/login/callback/")
+
+        # Both first_name and last_name
+        user_both = User()
+        sociallogin = SimpleNamespace(user=user_both)
+        populated = adapter.populate_user(
+            req,
+            sociallogin,
+            {
+                "email": "sara@example.com",
+                "first_name": "Sara",
+                "last_name": "Ali",
+            },
+        )
+        self.assertEqual(populated.full_name, "Sara Ali")
+
+        # Only first_name
+        user_first = User()
+        sociallogin_first = SimpleNamespace(user=user_first)
+        populated_first = adapter.populate_user(
+            req,
+            sociallogin_first,
+            {"email": "mona@example.com", "first_name": "Mona", "last_name": ""},
+        )
+        self.assertEqual(populated_first.full_name, "Mona")
+
+        # Empty name fields leave full_name empty without error
+        user_empty = User()
+        sociallogin_empty = SimpleNamespace(user=user_empty)
+        populated_empty = adapter.populate_user(
+            req,
+            sociallogin_empty,
+            {"email": "noname@example.com"},
+        )
+        self.assertEqual(populated_empty.full_name, "")
+
+    def test_user_manager_validation_guards(self):
+        with self.assertRaisesMessage(ValueError, "Email is required"):
+            User.objects.create_user(email="", password="secret")
+
+        with self.assertRaisesMessage(ValueError, "Superuser must have is_staff=True."):
+            User.objects.create_superuser(
+                email="bad-super1@example.com", password="secret", is_staff=False
+            )
+
+        with self.assertRaisesMessage(
+            ValueError, "Superuser must have is_superuser=True."
+        ):
+            User.objects.create_superuser(
+                email="bad-super2@example.com", password="secret", is_superuser=False
+            )

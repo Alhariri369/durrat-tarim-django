@@ -8,7 +8,7 @@ class AccountAdapter(DefaultAccountAdapter):
     """Email+password flow redirects (see accounts.views.login/register)."""
 
     def get_login_redirect_url(self, request):
-        return get_post_login_url(request, getattr(request, "user"))
+        return get_post_login_url(request, request.user)
 
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):

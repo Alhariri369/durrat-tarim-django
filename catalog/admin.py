@@ -1,12 +1,22 @@
+import logging
+from typing import ClassVar
+
+import requests
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.core.files.uploadedfile import UploadedFile
 from django.db.models import Case, Count, IntegerField, Value, When
+from django.http import HttpResponseRedirect
 from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import format_html
 
 from .currency import invalidate_rate_cache
-from .image_storage import handle_image_deletion, handle_image_replacement
+from .image_storage import (
+    _cleanup_old_image,
+    _require_durable_storage,
+    _validate_image,
+)
 from .models import (
     HEX_COLOR_RE,
     Category,
@@ -16,6 +26,115 @@ from .models import (
     StoreSettings,
 )
 
+logger = logging.getLogger(__name__)
+
+IMAGE_UPLOAD_ERROR_MESSAGE = (
+    "تعذر رفع الصورة إلى خدمة التخزين حالياً. لم يتم حفظ التغييرات، "
+    "يرجى المحاولة مرة أخرى أو التحقق من إعدادات التخزين."
+)
+
+
+class ImageUploadError(Exception):
+    """Raised when persisting an uploaded image to storage fails."""
+
+
+class _ValidatedImageAdminFormMixin:
+    """Validate newly uploaded images on both add and change forms."""
+
+    def clean_image(self):
+        image = self.cleaned_data.get("image")
+        if isinstance(image, UploadedFile):
+            _validate_image(image)
+        return image
+
+
+class CategoryAdminForm(_ValidatedImageAdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = "__all__"
+
+
+class ProductAdminForm(_ValidatedImageAdminFormMixin, forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = "__all__"
+
+
+class _SafeImageUploadAdminMixin:
+    """Validate images on add/change and handle storage upload failures cleanly."""
+
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        try:
+            return super().changeform_view(
+                request, object_id, form_url, extra_context
+            )
+        except (ImageUploadError, requests.RequestException, OSError) as exc:
+            if not isinstance(exc, ImageUploadError):
+                logger.exception(
+                    "Storage failure during %s changeform_view",
+                    self.model.__name__,
+                )
+            self.message_user(
+                request,
+                str(exc) if isinstance(exc, ImageUploadError) else IMAGE_UPLOAD_ERROR_MESSAGE,
+                level=messages.ERROR,
+            )
+            return HttpResponseRedirect(request.get_full_path())
+
+    def save_model(self, request, obj, form, change):
+        new_image = form.cleaned_data.get("image")
+        has_new_upload = isinstance(new_image, UploadedFile)
+        old_image_name = None
+
+        if change and obj.pk and "image" in form.changed_data:
+            old_image_name = (
+                type(obj)
+                .objects.filter(pk=obj.pk)
+                .values_list("image", flat=True)
+                .first()
+            )
+
+        if has_new_upload:
+            try:
+                _require_durable_storage()
+            except RuntimeError as exc:
+                logger.exception(
+                    "Durable storage check failed for %s", type(obj).__name__
+                )
+                raise ImageUploadError(IMAGE_UPLOAD_ERROR_MESSAGE) from exc
+            _validate_image(new_image)
+
+        try:
+            super().save_model(request, obj, form, change)
+        except (requests.RequestException, OSError, RuntimeError) as exc:
+            logger.exception(
+                "Image upload failed while saving %s (change=%s)",
+                type(obj).__name__,
+                change,
+            )
+            raise ImageUploadError(IMAGE_UPLOAD_ERROR_MESSAGE) from exc
+
+        if change and old_image_name and old_image_name != obj.image.name:
+            _cleanup_old_image(old_image_name, obj.image.name, type(obj))
+
+    def delete_model(self, request, obj):
+        image_name = obj.image.name if obj.image else ""
+        model_class = type(obj)
+        super().delete_model(request, obj)
+        if image_name:
+            _cleanup_old_image(image_name, None, model_class)
+
+    def delete_queryset(self, request, queryset):
+        image_names = [
+            obj.image.name
+            for obj in queryset
+            if getattr(obj, "image", None) and obj.image.name
+        ]
+        model_class = queryset.model
+        super().delete_queryset(request, queryset)
+        for image_name in set(image_names):
+            _cleanup_old_image(image_name, None, model_class)
+
 
 def _image_preview(obj, field_name="image", width=80):
     """Return an <img> tag for admin list-display preview, or '-'."""
@@ -24,7 +143,7 @@ def _image_preview(obj, field_name="image", width=80):
         return "-"
     try:
         url = image_field.url
-    except Exception:
+    except (ValueError, OSError, AttributeError):
         return "—"
     placeholder_url = static("images/product-placeholder.svg")
     return format_html(
@@ -281,17 +400,19 @@ class ProductCategoryFilter(admin.SimpleListFilter):
 
 class ChildCategoryInline(admin.TabularInline):
     model = Category
+    form = CategoryAdminForm
     fk_name = "parent"
     extra = 0
     fields = ("name_ar", "name_en", "slug", "image", "is_active", "display_order")
-    prepopulated_fields = {"slug": ("name_en",)}
+    prepopulated_fields: ClassVar[dict[str, tuple[str, ...]]] = {"slug": ("name_en",)}
     show_change_link = True
     verbose_name = "تصنيف فرعي"
     verbose_name_plural = "التصنيفات الفرعية المباشرة"
 
 
 @admin.register(Category)
-class CategoryAdmin(_ImagePreviewAdminMixin, admin.ModelAdmin):
+class CategoryAdmin(_SafeImageUploadAdminMixin, _ImagePreviewAdminMixin, admin.ModelAdmin):
+    form = CategoryAdminForm
     list_display = (
         "image_preview",
         "tree_name",
@@ -306,7 +427,7 @@ class CategoryAdmin(_ImagePreviewAdminMixin, admin.ModelAdmin):
     list_editable = ("is_active", "display_order")
     list_filter = (CategoryNodeTypeFilter, ParentCategoryFilter, "is_active")
     search_fields = ("name_ar", "name_en", "slug")
-    prepopulated_fields = {"slug": ("name_en",)}
+    prepopulated_fields: ClassVar[dict[str, tuple[str, ...]]] = {"slug": ("name_en",)}
     inlines = (ChildCategoryInline,)
     readonly_fields = _ImagePreviewAdminMixin.readonly_fields + (
         "created_at",
@@ -515,29 +636,14 @@ class CategoryAdmin(_ImagePreviewAdminMixin, admin.ModelAdmin):
             )
         return format_html('<span style="color:#9ca3af;">{}</span>', 0)
 
-    def save_model(self, request, obj, form, change):
-        if change and "image" in form.changed_data:
-            handle_image_replacement(obj, form.cleaned_data.get("image"))
-        else:
-            super().save_model(request, obj, form, change)
-
-    def delete_model(self, request, obj):
-        handle_image_deletion(obj)
-        super().delete_model(request, obj)
-
-    def delete_queryset(self, request, queryset):
-        for obj in queryset:
-            handle_image_deletion(obj)
-        super().delete_queryset(request, queryset)
-
-
 # ---------------------------------------------------------------------------
 # Product
 # ---------------------------------------------------------------------------
 
 
 @admin.register(Product)
-class ProductAdmin(_ImagePreviewAdminMixin, admin.ModelAdmin):
+class ProductAdmin(_SafeImageUploadAdminMixin, _ImagePreviewAdminMixin, admin.ModelAdmin):
+    form = ProductAdminForm
     list_display = (
         "image_preview",
         "name_ar",
@@ -551,7 +657,7 @@ class ProductAdmin(_ImagePreviewAdminMixin, admin.ModelAdmin):
     list_filter = ("is_active", ProductCategoryFilter)
     list_select_related = ("category", "category__parent", "category__parent__parent")
     search_fields = ("name_ar", "name_en", "description_ar", "description_en")
-    prepopulated_fields = {"slug": ("name_en",)}
+    prepopulated_fields: ClassVar[dict[str, tuple[str, ...]]] = {"slug": ("name_en",)}
     readonly_fields = _ImagePreviewAdminMixin.readonly_fields + (
         "created_at",
         "updated_at",
@@ -609,21 +715,6 @@ class ProductAdmin(_ImagePreviewAdminMixin, admin.ModelAdmin):
         if not obj.category_id:
             return "-"
         return f"📁 {obj.category.full_path}"
-
-    def save_model(self, request, obj, form, change):
-        if change and "image" in form.changed_data:
-            handle_image_replacement(obj, form.cleaned_data.get("image"))
-        else:
-            super().save_model(request, obj, form, change)
-
-    def delete_model(self, request, obj):
-        handle_image_deletion(obj)
-        super().delete_model(request, obj)
-
-    def delete_queryset(self, request, queryset):
-        for obj in queryset:
-            handle_image_deletion(obj)
-        super().delete_queryset(request, queryset)
 
 
 @admin.register(Favorite)

@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+db.sqlite3*
+.coverage
+.venv/
+.superdesign/
+.claude/
+.ruff_cache/
+.vscode/
+node_modules/
+__pycache__/
+*.pyc
+docs/context-reset.md
+vercel-get-started.md

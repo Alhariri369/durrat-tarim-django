@@ -11,7 +11,6 @@ still-referenced objects.
 """
 
 import logging
-from io import BytesIO
 from pathlib import Path
 
 from django.conf import settings
@@ -91,21 +90,6 @@ def _validate_image(file_obj):
     file_obj.seek(0)
 
 
-# def _require_durable_storage():
-#     """Raise RuntimeError if durable storage is not configured in production.
-
-#     In production (DEBUG=False), local MEDIA_ROOT under /tmp is rejected.
-#     In development, local MEDIA_ROOT is acceptable.
-#     """
-#     if settings.DEBUG:
-#         return
-#     media_root = str(settings.MEDIA_ROOT)
-#     if media_root.startswith("/tmp") or media_root.startswith("/var/folders"):
-#         raise RuntimeError(
-#             "Production must use durable media storage "
-#             "(e.g. S3, Cloud Storage).  /tmp is not acceptable."
-#         )
-
 def _require_durable_storage():
     """Reject local /tmp storage in production unless ImageKit is configured."""
     if settings.DEBUG:
@@ -114,17 +98,20 @@ def _require_durable_storage():
     if getattr(settings, "IMAGEKIT_PRIVATE_KEY", ""):
         return
     media_root = str(settings.MEDIA_ROOT)
-    if media_root.startswith("/tmp") or media_root.startswith("/var/folders"):
+    if media_root.startswith(("/tmp", "/var/folders")):
         raise RuntimeError(
             "Production must use durable media storage "
             "(ImageKit, S3, Cloud Storage).  /tmp is not acceptable."
         )
 
+
 def save_image(file_obj, upload_subdir: str) -> str:
     """Validate and save an uploaded image.  Returns the storage path."""
     _require_durable_storage()
     _validate_image(file_obj)
-    path = default_storage.save(f"{upload_subdir}/{file_obj.name}", file_obj)
+    subdir = (upload_subdir or "").strip("/")
+    target_name = f"{subdir}/{file_obj.name}" if subdir else file_obj.name
+    path = default_storage.save(target_name, file_obj)
     logger.info("Image saved: %s", path)
     return path
 
@@ -182,17 +169,19 @@ def handle_image_deletion(instance, field_name="image") -> None:
     if not image_field or not image_field.name:
         return
 
-    _cleanup_old_image(image_field.name, None, type(instance))
+    _cleanup_old_image(
+        image_field.name, None, type(instance), exclude_pk=instance.pk
+    )
 
 
-def _cleanup_old_image(old_name, new_name, model_class):
+def _cleanup_old_image(old_name, new_name, model_class, exclude_pk=None):
     """Delete old_name only if no other row references it and it differs from new_name."""
     if not old_name or old_name == new_name:
         return
 
     # Check if any other row of this model references the same file.
-    others_exist = (
-        model_class.objects.exclude(pk=None).filter(**{f"image": old_name}).exists()
-    )
-    if not others_exist:
+    qs = model_class.objects.filter(image=old_name)
+    if exclude_pk is not None:
+        qs = qs.exclude(pk=exclude_pk)
+    if not qs.exists():
         delete_image(old_name)

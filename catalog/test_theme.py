@@ -1,6 +1,6 @@
+import re
 from html.parser import HTMLParser
 from pathlib import Path
-import re
 
 from django.conf import settings
 from django.contrib.admin.sites import AdminSite
@@ -13,7 +13,6 @@ from accounts.models import User
 
 from .admin import StoreSettingsAdmin
 from .models import StoreSettings, _validate_hex_color
-
 
 LIGHT_COLOR_DEFAULTS = {
     "light_color_primary": "#6b4c8c",

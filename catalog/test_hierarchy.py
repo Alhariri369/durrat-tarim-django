@@ -1,8 +1,8 @@
 import decimal
-from html.parser import HTMLParser
 import io
-from pathlib import Path
 import tempfile
+from html.parser import HTMLParser
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.admin import SimpleListFilter
@@ -16,7 +16,7 @@ from django.urls import reverse
 
 from accounts.models import User
 
-from .admin import CategoryAdmin, ProductAdmin, _image_preview
+from .admin import CategoryAdmin, _image_preview
 from .models import Category, FeaturedProduct, Product
 
 

@@ -7,7 +7,7 @@ from allauth.account.models import EmailAddress
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
-from django.test import Client, TestCase, override_settings
+from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -392,7 +392,10 @@ class StorefrontMilestoneTests(TestCase):
         self,
     ):
         received = []
-        receiver = lambda sender, **kwargs: received.append(kwargs["product"].pk)
+
+        def receiver(sender, **kwargs):
+            received.append(kwargs["product"].pk)
+
         product_whatsapp_clicked.connect(receiver)
         try:
             response = self.client.get(
