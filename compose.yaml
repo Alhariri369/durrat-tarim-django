@@ -1,0 +1,74 @@
+services:
+  web:
+    build: .
+    image: durrat-tarim-django:latest
+    env_file:
+      - path: ${ENV_FILE:-.env}
+        required: false
+    environment:
+      DJANGO_SECURE_SSL_REDIRECT: ${DJANGO_SECURE_SSL_REDIRECT:-False}
+      RUN_MIGRATIONS: ${RUN_MIGRATIONS:-false}
+      REDIS_URL: ${REDIS_URL:-}
+    ports:
+      - "${WEB_PORT:-8000}:8000"
+    restart: unless-stopped
+
+  migrate:
+    build: .
+    image: durrat-tarim-django:latest
+    profiles: ["ops"]
+    env_file:
+      - path: ${ENV_FILE:-.env}
+        required: false
+    restart: "no"
+    command:
+      - sh
+      - -c
+      - "python manage.py showmigrations && python manage.py migrate --noinput && python manage.py showmigrations"
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["redis", "full"]
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  db:
+    image: postgres:17-alpine
+    profiles: ["local-db", "full"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-durrat_tarim}
+      POSTGRES_USER: ${POSTGRES_USER:-durrat}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-durrat_local_dev}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-durrat} -d $${POSTGRES_DB:-durrat_tarim}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Future Redis-backed worker template:
+  # worker:
+  #   image: durrat-tarim-django:latest
+  #   profiles: ["worker", "full"]
+  #   env_file:
+  #     - path: ${ENV_FILE:-.env}
+  #       required: false
+  #   environment:
+  #     REDIS_URL: redis://redis:6379/1
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   command: ["python", "manage.py", "your_worker_command"]
+
+volumes:
+  redis_data:
+  postgres_data:

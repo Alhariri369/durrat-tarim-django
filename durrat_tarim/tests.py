@@ -5,8 +5,10 @@ import tempfile
 import urllib.error
 from decimal import Decimal
 from html.parser import HTMLParser
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import EmailMessage, EmailMultiAlternatives
@@ -537,9 +539,10 @@ class SeoMetadataAndSchemaTests(TestCase):
         )
 
     def test_vercel_app_hosts_are_blocked_while_custom_domain_is_indexable(self):
-        for host in ("durrat-tarim-dev.vercel.app", "durttrim.vercel.app"):
+        for host in ("durrat-tarim-dev.vercel.app", "durttrim.vercel.app", "dev.durrattarim.com"):
             with self.subTest(host=host):
                 resp = self.client.get("/", HTTP_HOST=host)
+                self.assertEqual(resp.status_code, 200)
                 self.assertEqual(resp.headers.get("X-Robots-Tag"), "noindex, nofollow")
                 parsed = _parse_seo(resp.content)
                 self.assertEqual(self._meta(parsed, "robots"), "noindex,nofollow")
@@ -625,3 +628,34 @@ class SeoMetadataAndSchemaTests(TestCase):
         favicon_resp = self.client.get("/favicon.ico", HTTP_HOST="durrattarim.com")
         self.assertEqual(favicon_resp.status_code, 301)
         self.assertIn("favicon.png", favicon_resp["Location"])
+
+
+class ContainerAndCacheConfigTests(SimpleTestCase):
+    def test_build_caches_switches_between_locmem_and_redis(self):
+        from durrat_tarim.settings import _build_caches
+
+        locmem = _build_caches("")
+        self.assertEqual(
+            locmem["default"]["BACKEND"],
+            "django.core.cache.backends.locmem.LocMemCache",
+        )
+
+        redis_cfg = _build_caches("redis://redis:6379/1")
+        self.assertEqual(
+            redis_cfg["default"]["BACKEND"],
+            "django.core.cache.backends.redis.RedisCache",
+        )
+        self.assertEqual(redis_cfg["default"]["LOCATION"], "redis://redis:6379/1")
+
+    def test_container_files_and_env_secret_ignores_exist(self):
+        base_dir = Path(settings.BASE_DIR)
+        for rel_path in ("Dockerfile", "compose.yaml", "docker/entrypoint.sh"):
+            self.assertTrue((base_dir / rel_path).is_file(), f"Missing {rel_path}")
+
+        for ignore_file in (".gitignore", ".dockerignore"):
+            lines = {
+                line.strip()
+                for line in (base_dir / ignore_file).read_text(encoding="utf-8").splitlines()
+            }
+            self.assertIn(".env", lines, f"{ignore_file} must ignore .env")
+            self.assertIn(".env.*", lines, f"{ignore_file} must ignore .env.*")

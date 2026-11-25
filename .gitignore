@@ -12,6 +12,8 @@ wheels/
 # Local environment
 uploads/
 .env
+.env.*
+!.env.example
 db.sqlite3
 db.sqlite3.bak
 full_plan.md

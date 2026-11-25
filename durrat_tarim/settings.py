@@ -13,8 +13,11 @@ if not SECRET_KEY:
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     ".vercel.app",
+    ".durrattarim.com",
     "durrattarim.com",
     "www.durrattarim.com",
+    "dev.durrattarim.com",
+    ".durrat-tarim.com",
     "durrat-tarim.com",
     "www.durrat-tarim.com",
     "127.0.0.1",
@@ -225,7 +228,7 @@ if os.getenv("VERCEL"):
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "True") == "True"
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
@@ -234,6 +237,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
     "https://durrattarim.com",
     "https://www.durrattarim.com",
+    "https://dev.durrattarim.com",
+    "https://*.durrattarim.com",
     "https://durrat-tarim.com",
     "https://www.durrat-tarim.com",
 ]
@@ -289,3 +294,22 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
+
+
+def _build_caches(redis_url: str) -> dict:
+    if redis_url:
+        return {
+            "default": {
+                "BACKEND": "django.core.cache.backends.redis.RedisCache",
+                "LOCATION": redis_url,
+            }
+        }
+    return {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
+
+
+REDIS_URL = os.getenv("REDIS_URL", "").strip()
+CACHES = _build_caches(REDIS_URL)

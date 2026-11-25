@@ -2,9 +2,11 @@ from django.conf import settings
 
 
 def is_noindex_host(request) -> bool:
-    """Return True when the incoming host is a .vercel.app preview/staging domain
-    and ALLOW_VERCEL_APP_INDEXING is disabled."""
+    """Return True when the incoming host is a .vercel.app or dev/staging
+    subdomain and ALLOW_VERCEL_APP_INDEXING is disabled."""
     host = request.get_host().split(":", 1)[0].lower()
+    if host.startswith(("dev.", "staging.")):
+        return True
     if host.endswith(".vercel.app") and not getattr(
         settings, "ALLOW_VERCEL_APP_INDEXING", False
     ):
