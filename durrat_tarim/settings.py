@@ -11,7 +11,17 @@ if not SECRET_KEY:
     raise RuntimeError("DJANGO_SECRET_KEY must be set")
 
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
-ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = [
+    ".vercel.app",
+    ".durrattarim.com",
+    "durrattarim.com",
+    "www.durrattarim.com",
+    ".durrat-tarim.com",
+    "durrat-tarim.com",
+    "www.durrat-tarim.com",
+    "127.0.0.1",
+    "localhost",
+]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -210,6 +220,9 @@ if not DEBUG:
     
 CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
+    "https://durrattarim.com",
+    "https://www.durrattarim.com",
+    "https://*.durrattarim.com",
     "https://durrat-tarim.com",
     "https://www.durrat-tarim.com",
 ]
