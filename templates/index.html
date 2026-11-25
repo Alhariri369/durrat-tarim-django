@@ -3,7 +3,23 @@
 <!-- ============================================================
      HERO SECTION
      ============================================================ -->
-<div class="border-b border-secondary/8 gradient-hero">{% include hero %}</div>
+<div class="relative isolate overflow-hidden border-b border-secondary/10 gradient-hero">
+    <div class="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+        <img
+            src="{% static 'images/hero-bg.webp' %}"
+            alt=""
+            width="1920"
+            height="1080"
+            decoding="async"
+            onerror="this.onerror=null;this.src='{% static 'images/hero-placeholder.svg' %}';"
+            class="h-full w-full object-cover object-center opacity-35"
+        />
+        <div
+            class="absolute inset-0 bg-linear-to-b from-surface/55 via-background/70 to-background/90"
+        ></div>
+    </div>
+    {% include hero %}
+</div>
 
 <!-- ============================================================
      ATELIER PILLARS BAR

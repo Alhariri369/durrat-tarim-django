@@ -629,6 +629,21 @@ class SeoMetadataAndSchemaTests(TestCase):
         self.assertEqual(favicon_resp.status_code, 301)
         self.assertIn("favicon.png", favicon_resp["Location"])
 
+    def test_hero_renders_background_and_empty_showcase_placeholders(self):
+        home_html = self.client.get("/", HTTP_HOST="durrattarim.com").content.decode(
+            "utf-8"
+        )
+        self.assertIn("images/hero-bg.webp", home_html)
+        self.assertIn("images/hero-placeholder.svg", home_html)
+
+        FeaturedProduct.objects.all().delete()
+        empty_home_html = self.client.get(
+            "/", HTTP_HOST="durrattarim.com"
+        ).content.decode("utf-8")
+        self.assertIn("images/hero-bg.webp", empty_home_html)
+        self.assertIn("images/hero-showcase.webp", empty_home_html)
+        self.assertIn("images/product-placeholder.svg", empty_home_html)
+
 
 class ContainerAndCacheConfigTests(SimpleTestCase):
     def test_build_caches_switches_between_locmem_and_redis(self):

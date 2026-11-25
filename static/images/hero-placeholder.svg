@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080" role="img" aria-label="درة تريم">
+  <defs>
+    <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="55%" stop-color="#f7f3fa" />
+      <stop offset="100%" stop-color="#efe8f7" />
+    </linearGradient>
+    <pattern id="silkWeave" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0v48" fill="none" stroke="#6b4c8c" stroke-opacity="0.06" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#heroGrad)" />
+  <rect width="1920" height="1080" fill="url(#silkWeave)" />
+  <rect x="48" y="48" width="1824" height="984" rx="24" fill="none" stroke="#b88928" stroke-opacity="0.28" stroke-width="1.5" />
+  <path d="M760 980V440a200 200 0 0 1 400 0v540" fill="none" stroke="#a974c4" stroke-opacity="0.18" stroke-width="2" />
+  <path d="M810 980V460a150 150 0 0 1 300 0v520" fill="none" stroke="#b88928" stroke-opacity="0.2" stroke-width="1" />
+</svg>

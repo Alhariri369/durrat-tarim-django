@@ -1,7 +1,7 @@
 {% load static %}
 <section class="mx-auto max-w-7xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
     <div
-        class="grid items-center gap-8 rounded-2xl border border-secondary/10 bg-surface p-8 sm:p-12 md:grid-cols-12"
+        class="grid items-center gap-8 rounded-2xl border border-secondary/10 bg-surface/92 p-8 backdrop-blur-xs sm:p-12 md:grid-cols-12"
     >
         <div class="md:col-span-8">
             <p
@@ -48,14 +48,18 @@
                 </a>
             </div>
         </div>
-        <div class="hidden justify-center md:col-span-4 md:flex">
-            <img
-                src="{% static 'images/logo-gold-transparent.png' %}"
-                alt=""
-                width="160"
-                height="213"
-                class="h-48 w-auto object-contain opacity-90"
-            />
+        <div class="md:col-span-4">
+            <div class="mx-auto aspect-4/5 max-w-xs overflow-hidden rounded-xl border border-secondary/10 bg-background">
+                <img
+                    src="{% static 'images/hero-showcase.webp' %}"
+                    alt="درة تريم — قطع عرائسية وأقمشة وأزياء راقية"
+                    width="800"
+                    height="1000"
+                    fetchpriority="high"
+                    onerror="this.onerror=null;this.src='{% static 'images/product-placeholder.svg' %}';"
+                    class="h-full w-full object-cover"
+                />
+            </div>
         </div>
     </div>
 </section>
