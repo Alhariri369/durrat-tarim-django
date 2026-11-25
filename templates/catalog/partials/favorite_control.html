@@ -1,47 +1,85 @@
 <form
     method="post"
-    class="w-full h-full"
+    class="{% if variant == 'icon' %}inline-flex{% else %}w-full{% endif %}"
     action="{% if product.is_favorite %}{% url 'favorite-remove' product.pk %}{% else %}{% url 'favorite-add' product.pk %}{% endif %}"
 >
     {% csrf_token %}
     <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+    {% if variant == "icon" %}
+    <button
+        type="submit"
+        data-icon-only
+        aria-pressed="{% if product.is_favorite %}true{% else %}false{% endif %}"
+        aria-label="{% if product.is_favorite %}إزالة {{ product.name_ar }} من المفضلة{% else %}إضافة {{ product.name_ar }} إلى المفضلة{% endif %}"
+        class="flex h-11 w-11 items-center justify-center rounded-full border shadow-sm backdrop-blur-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 {% if product.is_favorite %}border-rose-300 bg-rose-50/95 text-rose-600 hover:bg-rose-100{% else %}border-secondary/12 bg-surface/92 text-secondary/70 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600{% endif %}"
+    >
+        {% if product.is_favorite %}
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+        >
+            <path
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+        </svg>
+        {% else %}
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="1.85"
+            aria-hidden="true"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+        </svg>
+        {% endif %}
+    </button>
+    {% else %}
     <button
         type="submit"
         aria-pressed="{% if product.is_favorite %}true{% else %}false{% endif %}"
-        class="group w-full rounded-lg border-2 px-3 py-2 text-xs font-bold transition-all sm:rounded-xl sm:px-4 sm:py-2.5 sm:text-sm {% if product.is_favorite %} border-rose-300 bg-rose-50 text-rose-600 hover:bg-rose-100 {% else %} border-rose-150 text-rose-400 hover:text-rose-600 hover:border-rose-300 hover:bg-rose-50 {% endif %}"
+        class="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 {% if product.is_favorite %}border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100{% else %}border-secondary/15 bg-surface text-secondary/80 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700{% endif %}"
     >
-        <span class="flex items-center justify-center gap-1.5 sm:gap-2">
-            {% if product.is_favorite %}
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-3.5 w-3.5 sm:h-4 sm:w-4"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-            >
-                <path
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-            </svg>
-            <span class="hidden sm:inline">إزالة من المفضلة</span>
-            <span class="sm:hidden">محفوظ</span>
-            {% else %}
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-3.5 w-3.5 transition-transform group-hover:scale-110 sm:h-4 sm:w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-            </svg>
-            <span class="hidden sm:inline">إضافة إلى المفضلة</span>
-            <span class="sm:hidden">حفظ</span>
-            {% endif %}
-        </span>
+        {% if product.is_favorite %}
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 shrink-0 text-rose-600"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+        >
+            <path
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+        </svg>
+        <span>إزالة من المفضلة</span>
+        {% else %}
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+            />
+        </svg>
+        <span>إضافة إلى المفضلة</span>
+        {% endif %}
     </button>
+    {% endif %}
 </form>

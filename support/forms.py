@@ -14,6 +14,13 @@ arabic_name_validator = RegexValidator(
     message=_("الرجاء إدخال اسم باللغة العربية مكون من 3 أحرف على الأقل"),
 )
 
+_INPUT_CLASSES = (
+    "w-full rounded-xl border border-secondary/15 bg-surface px-4 py-3 text-sm "
+    "text-secondary placeholder:text-secondary/45 transition-colors "
+    "focus:border-primary focus-visible:outline-none focus-visible:ring-2 "
+    "focus-visible:ring-primary/30"
+)
+
 
 class ContactForm(forms.Form):
     name = forms.CharField(
@@ -22,8 +29,9 @@ class ContactForm(forms.Form):
         validators=[arabic_name_validator],
         widget=forms.TextInput(
             attrs={
-                "placeholder": "أدخلي اسمك الكريم",
-                "class": "w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary placeholder:text-secondary/20",
+                "placeholder": "مثال: نورة العطاس…",
+                "autocomplete": "name",
+                "class": _INPUT_CLASSES,
             }
         ),
     )
@@ -31,11 +39,14 @@ class ContactForm(forms.Form):
         label="رقم الجوال",
         max_length=20,
         validators=[arabic_phone_validator],
-        widget=forms.TextInput(
+        widget=forms.TelInput(
             attrs={
-                "placeholder": "05X XXX XXXX",
+                "placeholder": "05XXXXXXXX…",
                 "dir": "ltr",
-                "class": "w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary placeholder:text-secondary/20",
+                "inputmode": "tel",
+                "autocomplete": "tel",
+                "spellcheck": "false",
+                "class": f"{_INPUT_CLASSES} tabular-nums text-start",
             }
         ),
     )
@@ -45,8 +56,8 @@ class ContactForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "placeholder": "عن ماذا تودين الاستفسار؟",
-                "class": "w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary placeholder:text-secondary/20",
+                "placeholder": "استفسار عن مقاس أو قطعة…",
+                "class": _INPUT_CLASSES,
             }
         ),
     )
@@ -55,8 +66,8 @@ class ContactForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "rows": 5,
-                "placeholder": "اكتبي استفسارك هنا...",
-                "class": "w-full px-6 py-4 bg-surface border border-secondary/10 rounded-2xl focus:border-accent focus:ring-4 focus:ring-accent/5 outline-none transition-all text-secondary resize-none placeholder:text-secondary/20",
+                "placeholder": "اكتبي تفاصيل استفساركِ هنا…",
+                "class": f"{_INPUT_CLASSES} resize-y",
             }
         ),
         min_length=10,

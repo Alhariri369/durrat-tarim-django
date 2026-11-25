@@ -1,0 +1,45 @@
+{% load static %}
+<!doctype html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+    <head>
+        {% include 'partials/head.html' %}
+        {% block extra_head %}{% endblock extra_head %}
+    </head>
+    <body
+        class="bg-background font-tajawal text-secondary antialiased selection:bg-primary/15"
+    >
+        {% include 'partials/header.html' %}
+
+        {% if messages %}
+        <div
+            class="pointer-events-none fixed top-22 left-1/2 z-60 w-[92%] max-w-lg -translate-x-1/2 space-y-2"
+            aria-live="polite"
+        >
+            {% for message in messages %}
+            <div
+                class="toast-animate pointer-events-auto rounded-xl border border-secondary/10 border-s-4 bg-surface p-4 text-sm font-bold shadow-lg {% if message.tags == 'error' %}border-s-red-600 text-red-700{% elif message.tags == 'success' %}border-s-emerald-600 text-emerald-800{% else %}border-s-primary text-primary{% endif %}"
+                role="alert"
+            >
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <main id="main-content" class="min-h-screen pt-18 lg:pt-20">
+            {% block body %}
+            <div class="gradient-hero flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 py-12">
+                <div class="w-full max-w-md">
+                    <div class="glass-card space-y-4 p-7 text-center sm:p-9">
+                        {% block content %}{% endblock content %}
+                    </div>
+                </div>
+            </div>
+            {% endblock body %}
+        </main>
+
+        {% include 'partials/footer.html' %}
+        <script src="{% static 'js/animations.js' %}" defer></script>
+        {% block extra_body %}{% endblock extra_body %}
+    </body>
+</html>

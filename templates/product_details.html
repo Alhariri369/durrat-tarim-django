@@ -1,111 +1,119 @@
 {% extends "base.html" %} {% load static catalog_tags %} {% block content %}
 {% product_json_ld product %}
 {% breadcrumb_json_ld breadcrumbs %}
-<article class="mx-auto max-w-7xl px-4 py-10 md:py-16">
-    <div class="grid gap-10 md:grid-cols-2 md:items-start">
-        <!-- Product Image -->
-        <div>
+<article class="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-14 lg:px-8">
+    <!-- Breadcrumb Trail -->
+    <nav aria-label="مسار التنقل" class="mb-6">
+        <ol class="flex flex-wrap items-center gap-2 text-xs font-medium text-secondary/65">
+            {% for crumb_name, crumb_url in breadcrumbs %}
+            <li class="flex items-center gap-2">
+                {% if not forloop.last %}
+                <a
+                    href="{{ crumb_url }}"
+                    class="transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >{{ crumb_name }}</a
+                >
+                <span class="text-secondary/35" aria-hidden="true">/</span>
+                {% else %}
+                <span aria-current="page" class="font-bold text-secondary">{{ crumb_name }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    </nav>
+
+    <div class="grid gap-8 md:grid-cols-12 md:items-start lg:gap-12">
+        <!-- Sticky Portrait Product Image -->
+        <div class="md:col-span-6 md:sticky md:top-24">
             <div
-                class="relative overflow-hidden rounded-[3rem] border border-secondary/5 bg-surface shadow-xl"
+                class="aspect-3/4 overflow-hidden rounded-2xl border border-secondary/10 bg-surface shadow-xs"
             >
                 {% if product.image %}
                 <img
                     src="{{ product.image.url }}?tr=w-1200,f-webp,q-85"
                     alt="{{ product.name_ar }}"
+                    width="900"
+                    height="1200"
+                    fetchpriority="high"
                     onerror="this.onerror=null;this.src='{% static 'images/product-placeholder.svg' %}';"
-                    class="w-full object-cover max-h-144"
+                    class="h-full w-full object-cover"
                 />
                 {% else %}
                 <img
                     src="{% static 'images/product-placeholder.svg' %}"
                     alt="{{ product.name_ar }}"
-                    class="w-full object-cover max-h-144"
+                    width="900"
+                    height="1200"
+                    fetchpriority="high"
+                    class="h-full w-full object-cover"
                 />
                 {% endif %}
-                <!-- Decorative corner accent -->
-                <div
-                    class="absolute -bottom-4 -right-4 h-28 w-28 rounded-full bg-accent/10 blur-2xl"
-                ></div>
-                <div
-                    class="absolute -left-4 -top-4 h-20 w-20 rounded-full bg-primary/10 blur-2xl"
-                ></div>
             </div>
         </div>
 
-        <!-- Product Details -->
-        <div class="reveal stagger-2">
-            <!-- Breadcrumb Trail -->
-            <nav
-                aria-label="مسار التنقل"
-                class="mb-4 flex flex-wrap items-center gap-2 text-xs font-bold"
+        <!-- Editorial Garment Sheet -->
+        <div class="min-w-0 md:col-span-6 reveal">
+            {% if product.category %}
+            <a
+                href="{% url 'product-type' product.category.slug %}"
+                class="mb-3 inline-flex items-center gap-2.5 text-xs font-bold tracking-wide text-primary transition-colors hover:text-secondary focus-visible:outline-none focus-visible:underline"
             >
-                {% for crumb_name, crumb_url in breadcrumbs %}
-                {% if not forloop.last %}
-                <a
-                    href="{{ crumb_url }}"
-                    class="inline-flex items-center rounded-full bg-accent/5 px-3.5 py-1.5 text-accent transition-colors hover:bg-accent/15"
-                >
-                    {{ crumb_name }}
-                </a>
-                <span class="text-secondary/30" aria-hidden="true">/</span>
-                {% else %}
-                <span
-                    aria-current="page"
-                    class="inline-flex items-center rounded-full bg-secondary/5 px-3.5 py-1.5 text-secondary/70"
-                >
-                    {{ crumb_name }}
-                </span>
-                {% endif %}
-                {% endfor %}
-            </nav>
+                <span class="h-px w-6 bg-gold" aria-hidden="true"></span>
+                <span>{{ product.category.name_ar }}</span>
+            </a>
+            {% endif %}
 
             <h1
-                class="my-5 text-3xl font-black text-primary md:text-4xl lg:text-5xl"
+                class="font-display text-3xl font-bold leading-tight text-secondary sm:text-4xl lg:text-5xl"
             >
                 {{ product.name_ar }}
             </h1>
 
-            <!-- Price -->
-            <div class="mb-8">
-                <p class="text-4xl font-black text-accent md:text-5xl">
+            <!-- Dual-Currency Price Block -->
+            <div class="my-6 border-y border-secondary/10 py-5 tabular-nums">
+                <p class="text-3xl font-extrabold text-primary sm:text-4xl">
                     {{ product.price_sar|format_sar }}
                 </p>
-                <p class="mt-1 text-lg text-secondary/45">
+                <p class="mt-1 text-sm font-medium text-secondary/65 sm:text-base">
                     حوالي {{ product.price_sar|format_yer }}
                 </p>
             </div>
 
             <!-- Description -->
-            <div class="mb-8 rounded-2xl bg-accent/5 p-6">
-                <h3 class="mb-3 text-sm font-bold text-accent">وصف المنتج</h3>
+            <div class="mb-8">
+                <h2 class="mb-2.5 text-xs font-bold tracking-wide text-secondary/65">
+                    تفاصيل القطعة
+                </h2>
                 <p
-                    class="whitespace-pre-line text-base leading-8 text-secondary/70"
-                >
-                    {{product.description_ar|default:"لا يوجد وصف متاح لهذا
-                    المنتج."}}
-                </p>
+                    class="whitespace-pre-line text-base leading-relaxed text-secondary/80"
+                >{{ product.description_ar|default:"لا يوجد وصف متاح لهذا المنتج حالياً. تواصلي معنا عبر واتساب لمعرفة المقاسات والتفاصيل." }}</p>
             </div>
 
-            <!-- Actions -->
-            <div class="grid grid-cols-2 max-w-md gap-3">
+            <!-- Primary Actions -->
+            <div class="grid gap-3 sm:grid-cols-2">
                 <a
                     href="{% url 'product-whatsapp' product.pk %}"
-                    class="group inline-flex items-center justify-center gap-3 bg-whatsapp px-8 rounded-lg py-2 text-xs font-black text-white shadow-lg shadow-whatsapp/25 transition-all hover:bg-whatsapp/90 hover:shadow-whatsapp/40 hover:-translate-y-0.5 active:scale-[0.98]"
+                    class="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-whatsapp px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-whatsapp/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        class="h-5 w-5"
+                        class="h-5 w-5 shrink-0"
                         fill="currentColor"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                     >
                         <path
                             d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
                         />
                     </svg>
-                    استفسار عبر واتساب
+                    <span>استفسار عبر واتساب</span>
                 </a>
-                {% include "catalog/partials/favorite_control.html" with
-                product=product %}
+                {% include "catalog/partials/favorite_control.html" with product=product %}
+            </div>
+
+            <!-- Concierge Reassurance -->
+            <div class="mt-6 rounded-xl border border-secondary/10 bg-surface p-4 text-xs leading-relaxed text-secondary/70">
+                تتم معالجة الطلبات وتأكيد المقاسات وتفاصيل التوصيل عبر محادثة واتساب مباشرة مع فريق درة تريم.
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
+from django.conf import settings
 from django.core import mail
 from django.core.cache import cache
 from django.test import RequestFactory, TestCase, override_settings
@@ -557,3 +558,132 @@ class AccountAndSocialAdapterTests(TestCase):
             User.objects.create_superuser(
                 email="bad-super2@example.com", password="secret", is_superuser=False
             )
+
+    def test_google_trusted_and_site_verification_mandatory_settings(self):
+        self.assertEqual(settings.ACCOUNT_EMAIL_VERIFICATION, "mandatory")
+        self.assertEqual(settings.SOCIALACCOUNT_EMAIL_VERIFICATION, "none")
+        self.assertTrue(
+            settings.SOCIALACCOUNT_PROVIDERS["google"].get("VERIFIED_EMAIL")
+        )
+
+    def test_pre_social_login_verifies_existing_user_only_for_verified_google(self):
+        adapter = SocialAccountAdapter()
+        req = self.factory.get("/auth/google/login/callback/")
+
+        # Superuser created via createsuperuser has no EmailAddress row yet
+        superuser = User.objects.create_superuser(
+            email="super@example.com",
+            password="Zebra-Planet-8462",
+            full_name="Super User",
+        )
+        sociallogin_super = SimpleNamespace(
+            account=SimpleNamespace(
+                provider="google", extra_data={"email": superuser.email, "email_verified": True}
+            ),
+            email_addresses=[
+                SimpleNamespace(email=superuser.email, verified=True)
+            ],
+            user=superuser,
+            is_existing=True,
+        )
+        adapter.pre_social_login(req, sociallogin_super)
+        super_ea = EmailAddress.objects.get(user=superuser, email=superuser.email)
+        self.assertTrue(super_ea.verified)
+        self.assertTrue(super_ea.primary)
+
+        # Registered user with unverified EmailAddress gets marked verified on Google login
+        unverified_user = User.objects.create_user(
+            email="existing@example.com",
+            password="Zebra-Planet-8462",
+            full_name="Existing User",
+        )
+        ea_unverified = EmailAddress.objects.create(
+            user=unverified_user,
+            email=unverified_user.email,
+            verified=False,
+            primary=True,
+        )
+        sociallogin_match = SimpleNamespace(
+            account=SimpleNamespace(
+                provider="google",
+                extra_data={"email": unverified_user.email, "email_verified": True},
+            ),
+            email_addresses=[],
+            user=User(email=unverified_user.email),
+            is_existing=False,
+        )
+        adapter.pre_social_login(req, sociallogin_match)
+        ea_unverified.refresh_from_db()
+        self.assertTrue(ea_unverified.verified)
+
+        # Unverified Google payload OR non-Google provider does NOT auto-verify
+        other_user = User.objects.create_user(
+            email="notverified@example.com",
+            password="Zebra-Planet-8462",
+            full_name="Other User",
+        )
+        ea_other = EmailAddress.objects.create(
+            user=other_user, email=other_user.email, verified=False, primary=True
+        )
+        adapter.pre_social_login(
+            req,
+            SimpleNamespace(
+                account=SimpleNamespace(
+                    provider="google",
+                    extra_data={"email": other_user.email, "email_verified": False},
+                ),
+                email_addresses=[],
+                user=User(email=other_user.email),
+                is_existing=False,
+            ),
+        )
+        ea_other.refresh_from_db()
+        self.assertFalse(ea_other.verified)
+
+        adapter.pre_social_login(
+            req,
+            SimpleNamespace(
+                account=SimpleNamespace(
+                    provider="github",
+                    extra_data={"email": other_user.email, "email_verified": True},
+                ),
+                email_addresses=[],
+                user=User(email=other_user.email),
+                is_existing=False,
+            ),
+        )
+        ea_other.refresh_from_db()
+        self.assertFalse(ea_other.verified)
+
+    def test_google_only_user_without_password_gets_401_on_password_login(self):
+        google_user = User.objects.create_user(
+            email="google-only@example.com",
+            password=None,
+            full_name="Google Only",
+        )
+        EmailAddress.objects.create(
+            user=google_user, email=google_user.email, verified=True, primary=True
+        )
+        self.assertFalse(google_user.has_usable_password())
+
+        resp = self.client.post(
+            reverse("account_login"),
+            {"email": google_user.email, "password": "anything-at-all"},
+        )
+        self.assertEqual(resp.status_code, 401)
+        self.assertNotIn("_auth_user_id", self.client.session)
+
+    def test_styled_allauth_templates_render_rtl_without_raw_menu(self):
+        resp_sent = self.client.get(reverse("account_email_verification_sent"))
+        self.assertEqual(resp_sent.status_code, 200)
+        self.assertContains(resp_sent, 'dir="rtl"')
+        self.assertContains(resp_sent, "glass-card")
+        self.assertNotContains(resp_sent, "<strong>قائمة:</strong>")
+
+        resp_confirm = self.client.get(
+            reverse("account_confirm_email", args=["invalid-key-123"])
+        )
+        self.assertEqual(resp_confirm.status_code, 200)
+        self.assertContains(resp_confirm, 'dir="rtl"')
+        self.assertContains(resp_confirm, "glass-card")
+        self.assertNotContains(resp_confirm, "<strong>قائمة:</strong>")

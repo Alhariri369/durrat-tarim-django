@@ -1,95 +1,114 @@
 {% extends "base.html" %} {% load static catalog_tags %} {% block content %}
 {% breadcrumb_json_ld breadcrumbs %}
-<section class="mx-auto max-w-7xl px-4 py-12 md:py-20">
-    <!-- Page Header -->
-    <div class="mb-12 text-center reveal">
-        <span
-            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
-        >
-            تصنيفات الأزياء
-        </span>
-        <h1 class="text-3xl font-black text-primary md:text-5xl">تشكيلاتنا</h1>
-        <div class="mx-auto mt-4 h-1 w-20 rounded-full bg-accent/30"></div>
-        <p class="mx-auto mt-4 max-w-xl text-lg text-secondary/55">
-            اختاري المجموعة التي تناسبكِ واستكشفي أحدث التصاميم
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
+    <!-- Breadcrumbs -->
+    <nav aria-label="مسار التنقل" class="mb-6">
+        <ol class="flex flex-wrap items-center gap-2 text-xs font-medium text-secondary/65">
+            {% for crumb_name, crumb_url in breadcrumbs %}
+            <li class="flex items-center gap-2">
+                {% if not forloop.last %}
+                <a
+                    href="{{ crumb_url }}"
+                    class="transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >{{ crumb_name }}</a
+                >
+                <span class="text-secondary/35" aria-hidden="true">/</span>
+                {% else %}
+                <span aria-current="page" class="font-bold text-secondary">{{ crumb_name }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    </nav>
+
+    <!-- Editorial Header -->
+    <div class="mb-10 border-b border-secondary/10 pb-6 reveal">
+        <p class="mb-2 flex items-center gap-2.5 text-xs font-bold tracking-wide text-primary">
+            <span class="h-px w-6 bg-gold" aria-hidden="true"></span>
+            <span>مجموعات الأزياء</span>
+        </p>
+        <h1 class="font-display text-3xl font-bold text-secondary md:text-4xl">
+            تشكيلاتنا
+        </h1>
+        <p class="mt-2 max-w-xl text-base text-secondary/70">
+            اختاري المجموعة التي تناسب ذوقكِ واستكشفي أحدث التصاميم المتاحة.
         </p>
     </div>
 
     <!-- Category Grid -->
-    <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
         {% for category in categories %}
         <a
             href="{% url 'product-type' category.slug %}"
-            class="group glass-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden"
-            data-tilt
+            class="group atelier-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden transition-[border-color,box-shadow] duration-200 hover:border-primary/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-            <!-- Image Container -->
-            <div class="aspect-[4/3] relative overflow-hidden bg-background">
+            <div class="img-zoom relative aspect-4/3 overflow-hidden bg-background">
                 {% if category.image %}
                 <img
                     src="{{ category.image.url }}?tr=w-900,f-webp,q-80"
                     alt="{{ category.name_ar }}"
+                    width="800"
+                    height="600"
                     loading="lazy"
                     onerror="this.onerror=null;this.src='{% static 'images/product-placeholder.svg' %}';"
-                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    class="h-full w-full object-cover"
                 />
                 {% else %}
                 <img
                     src="{% static 'images/product-placeholder.svg' %}"
                     alt="{{ category.name_ar }}"
+                    width="800"
+                    height="600"
                     loading="lazy"
-                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    class="h-full w-full object-cover"
                 />
                 {% endif %}
 
-                <!-- Hover Overlay -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-t from-secondary/50 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                ></div>
-
-                <!-- Badge: subcategories count for folder, product count for leaf -->
                 {% if category.subcategories_count %}
                 <span
-                    class="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-primary backdrop-blur-sm shadow-sm"
+                    class="absolute top-3 end-3 rounded-md border border-secondary/10 bg-surface/92 px-2.5 py-1 text-xs font-bold text-primary tabular-nums backdrop-blur-xs"
                 >
                     {{ category.subcategories_count }} تصنيف فرعي
                 </span>
                 {% elif category.products_count %}
                 <span
-                    class="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-accent backdrop-blur-sm shadow-sm"
+                    class="absolute top-3 end-3 rounded-md border border-secondary/10 bg-surface/92 px-2.5 py-1 text-xs font-bold text-secondary tabular-nums backdrop-blur-xs"
                 >
                     {{ category.products_count }} منتج
                 </span>
                 {% endif %}
             </div>
 
-            <!-- Category Title -->
-            <div
-                class="flex flex-1 flex-col items-center justify-center p-6 text-center"
-            >
+            <div class="flex items-center justify-between gap-3 p-4 sm:p-5">
                 <h2
-                    class="text-2xl font-black text-primary transition-colors duration-300 group-hover:text-accent"
+                    class="min-w-0 truncate text-base font-bold text-secondary transition-colors group-hover:text-primary sm:text-xl"
                 >
                     {{ category.name_ar }}
                 </h2>
+                <span
+                    class="shrink-0 text-sm text-secondary/45 transition-colors group-hover:text-primary"
+                    aria-hidden="true"
+                    >←</span
+                >
             </div>
         </a>
         {% empty %}
-        <!-- Empty State -->
         <div
-            class="col-span-full rounded-[2.5rem] border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+            class="col-span-full rounded-2xl border border-secondary/12 bg-surface px-6 py-16 text-center reveal"
         >
             <div
-                class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-3xl text-accent"
+                class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-secondary/10 bg-background text-primary"
+                aria-hidden="true"
             >
-                👗
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
             </div>
-            <h3 class="mb-2 text-xl font-bold text-secondary">
+            <h2 class="mb-1 text-lg font-bold text-secondary">
                 لا توجد تصنيفات متاحة حالياً
-            </h3>
-            <p class="mx-auto max-w-md text-sm text-secondary/50">
-                نحن نعمل على إضافة مجموعات أزياء جديدة قريباً، يرجى العودة
-                لاحقاً.
+            </h2>
+            <p class="mx-auto max-w-md text-sm text-secondary/65">
+                نحن نعمل على إضافة مجموعات أزياء جديدة قريباً، يرجى العودة لاحقاً.
             </p>
         </div>
         {% endfor %}

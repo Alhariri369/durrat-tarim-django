@@ -7,7 +7,7 @@
 </title>
 <meta
     name="description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء'|truncatechars:160 }}"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء والعبايات الراقية من درة تريم'|truncatechars:160 }}"
 />
 
 <!-- Canonical URL (scheme + host + path, query string stripped, pagination: page=1 canonical) -->
@@ -30,7 +30,7 @@
 />
 <meta
     property="og:description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء.'|truncatechars:160 }}"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء والعبايات الراقية.'|truncatechars:160 }}"
 />
 <meta
     property="og:image"
@@ -45,7 +45,7 @@
 />
 <meta
     name="twitter:description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء.'|truncatechars:160 }}"
+    content="{{ meta_description|default:'تصفحي أحدث الأزياء والعبايات الراقية.'|truncatechars:160 }}"
 />
 <meta
     name="twitter:image"
@@ -100,19 +100,17 @@
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/png" href="{% static 'images/logo-gold-transparent.png' %}" />
 
 <meta name="theme-color" content="{{ site_settings.light_color_background|default:'#f7f3fa' }}" />
 
 <!-- Robots meta (views can set robots_content, e.g. search results = noindex) -->
 <meta name="robots" content="{{ robots_content|default:'index,follow' }}" />
 
-<!-- Hreflang placeholder for future multi-language support -->
-<!-- <link rel="alternate" hreflang="en" href="..." /> -->
-
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&family=El+Messiri:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap"
     rel="stylesheet"
 />
 

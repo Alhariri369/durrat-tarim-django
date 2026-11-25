@@ -2,44 +2,50 @@
 
 @source "../../templates";
 @source "../../static/js";
+@source "../../support";
 
 @theme static {
-    /* --- Font tokens (KEEP) --- */
-    --font-tajawal: "Tajawal", "sans-serif";
-    --font-cairo: "Cairo", "sans-serif";
-    --font-el-messiri: "El Messiri", "sans-serif";
+    /* --- Font tokens --- */
+    --font-tajawal: "Tajawal", system-ui, -apple-system, sans-serif;
+    --font-cairo: "Cairo", system-ui, sans-serif;
+    --font-el-messiri: "El Messiri", "Tajawal", Georgia, serif;
+    --font-display: "El Messiri", "Tajawal", Georgia, serif;
 
-    /* --- 10 Core Color Tokens — Direct Mapping to StoreSettings (light defaults: Lilac palette) --- */
+    /* --- Core Color Tokens — Direct Mapping to StoreSettings --- */
     --color-primary: #6b4c8c;
     --color-secondary: #1f1629;
     --color-accent: #a974c4;
     --color-background: #f7f3fa;
     --color-surface: #ffffff;
 
-    /* --- Semantic Aliases (derived from core tokens) --- */
+    /* --- Brand Gold Accent (harmonized with logo-gold-transparent.png) --- */
+    --color-gold: #b88928;
+    --color-gold-soft: #f6efe0;
+
+    /* --- Semantic Aliases --- */
     --color-text: var(--color-secondary);
     --color-text-muted: var(--color-secondary);
-    --color-border: color-mix(in srgb, var(--color-secondary) 15%, transparent);
+    --color-border: color-mix(in srgb, var(--color-secondary) 12%, transparent);
     --color-border-strong: var(--color-secondary);
-    --color-focus: var(--color-accent);
-    --color-focus-ring: var(--color-accent);
+    --color-focus: var(--color-primary);
+    --color-focus-ring: var(--color-primary);
     --color-overlay: color-mix(in srgb, var(--color-background) 80%, black);
 
-    /* --- Status colors (KEEP as named — not admin-manageable) --- */
-    --color-success: #10b981;
-    --color-warning: #f59e0b;
-    --color-error: #ef4444;
-    --color-info: #3b82f6;
+    /* --- Status colors --- */
+    --color-success: #059669;
+    --color-warning: #d97706;
+    --color-error: #dc2626;
+    --color-info: #2563eb;
 
     /* --- Social brand tokens --- */
-    --color-whatsapp: #25d366;
+    --color-whatsapp: #1fa855;
     --color-instagram: #e1306c;
     --color-instagram-start: #f58529;
     --color-instagram-mid: #dd2a7b;
     --color-instagram-end: #8134af;
-    --color-tiktok: #010101;
+    --color-tiktok: #111111;
 
-    /* --- Rose palette (KEEP — 10 shades) --- */
+    /* --- Rose palette --- */
     --color-rose-50: #fff1f2;
     --color-rose-100: #ffe4e6;
     --color-rose-200: #fecdd3;
@@ -51,9 +57,6 @@
     --color-rose-800: #9f1239;
     --color-rose-900: #881337;
     --color-rose-950: #4c0519;
-
-    /* Dark mode variants via CSS custom properties (html.dark selector) */
-    /* These will be overridden by inline CSS variables from StoreSettings at runtime */
 }
 
 @utility bg-instagram-gradient {
@@ -63,4 +66,10 @@
         var(--color-instagram-mid) 50%,
         var(--color-instagram-end) 100%
     );
+}
+
+@utility atelier-card {
+    background-color: var(--color-surface);
+    border: 1px solid color-mix(in srgb, var(--color-secondary) 10%, transparent);
+    border-radius: 0.875rem;
 }

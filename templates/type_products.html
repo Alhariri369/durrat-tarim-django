@@ -5,172 +5,161 @@
 {% category_json_ld category products %}
 {% endif %}
 {% breadcrumb_json_ld breadcrumbs %}
-<section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
     <!-- Breadcrumb Bar -->
-    <nav
-        aria-label="مسار التنقل"
-        class="mb-6 flex flex-wrap items-center gap-2 text-xs font-bold reveal"
-    >
-        {% for crumb_name, crumb_url in breadcrumbs %}
-        {% if not forloop.last %}
-        <a
-            href="{{ crumb_url }}"
-            class="inline-flex items-center rounded-full bg-accent/5 px-3.5 py-1.5 text-accent transition-colors hover:bg-accent/15"
-        >
-            {{ crumb_name }}
-        </a>
-        <span class="text-secondary/30" aria-hidden="true">/</span>
-        {% else %}
-        <span
-            aria-current="page"
-            class="inline-flex items-center rounded-full bg-secondary/5 px-3.5 py-1.5 text-secondary/70"
-        >
-            {{ crumb_name }}
-        </span>
-        {% endif %}
-        {% endfor %}
+    <nav aria-label="مسار التنقل" class="mb-6">
+        <ol class="flex flex-wrap items-center gap-2 text-xs font-medium text-secondary/65">
+            {% for crumb_name, crumb_url in breadcrumbs %}
+            <li class="flex items-center gap-2">
+                {% if not forloop.last %}
+                <a
+                    href="{{ crumb_url }}"
+                    class="transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >{{ crumb_name }}</a
+                >
+                <span class="text-secondary/35" aria-hidden="true">/</span>
+                {% else %}
+                <span aria-current="page" class="font-bold text-secondary">{{ crumb_name }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
     </nav>
 
-    <!-- Header -->
+    <!-- Editorial Header -->
     <div
-        class="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-secondary/5 pb-6 reveal"
+        class="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-secondary/10 pb-6 reveal"
     >
         <div>
-            <span
-                class="mb-2 inline-block rounded-full bg-accent/10 px-3 py-1 text-xs font-bold tracking-wide text-accent"
-            >
-                {% if category.parent %}{{ category.parent.name_ar }}{% else %}{{ category.name_ar }}{% endif %}
-            </span>
-            <h1 class="text-3xl font-black text-primary md:text-4xl">
+            <p class="mb-2 flex items-center gap-2.5 text-xs font-bold tracking-wide text-primary">
+                <span class="h-px w-6 bg-gold" aria-hidden="true"></span>
+                <span>{% if category.parent %}{{ category.parent.name_ar }}{% else %}التصنيفات{% endif %}</span>
+            </p>
+            <h1 class="font-display text-3xl font-bold text-secondary md:text-4xl">
                 {{ category.name_ar }}
             </h1>
-            <p class="mt-2 text-secondary/50">
+            <p class="mt-2 text-sm text-secondary/70 sm:text-base">
                 {% if is_folder %}
-                اختاري التصنيف الفرعي المناسب لاستكشاف التشكيلة
+                اختاري التصنيف الفرعي المناسب لاستكشاف التشكيلة.
                 {% else %}
-                جميع المنتجات المتاحة في هذا التصنيف
+                تصفحي جميع القطع المتاحة ضمن هذا القسم.
                 {% endif %}
             </p>
         </div>
+
         {% if category.parent %}
         <a
             href="{% url 'product-type' category.parent.slug %}"
-            class="inline-flex items-center gap-2 rounded-2xl border-2 border-secondary/10 px-5 py-2.5 text-sm font-bold text-secondary transition-all hover:border-accent/30 hover:text-accent"
+            class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-secondary/15 bg-surface px-4 py-2.5 text-sm font-bold text-secondary transition-colors hover:border-primary/35 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
+                class="h-4 w-4 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 stroke-width="2"
+                aria-hidden="true"
             >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15 19l-7-7 7-7"
-                />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            العودة إلى {{ category.parent.name_ar }}
+            <span>العودة إلى {{ category.parent.name_ar }}</span>
         </a>
         {% else %}
         <a
             href="{% url 'product-types' %}"
-            class="inline-flex items-center gap-2 rounded-2xl border-2 border-secondary/10 px-5 py-2.5 text-sm font-bold text-secondary transition-all hover:border-accent/30 hover:text-accent"
+            class="inline-flex min-h-11 items-center gap-2 rounded-xl border border-secondary/15 bg-surface px-4 py-2.5 text-sm font-bold text-secondary transition-colors hover:border-primary/35 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="h-4 w-4"
+                class="h-4 w-4 shrink-0"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 stroke-width="2"
+                aria-hidden="true"
             >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M15 19l-7-7 7-7"
-                />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
             </svg>
-            جميع التصنيفات
+            <span>جميع التصنيفات</span>
         </a>
         {% endif %}
     </div>
 
     {% if is_folder %}
-    <!-- Subcategories Folder Drill-Down Grid -->
-    <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+    <!-- Subcategories Drill-Down Grid -->
+    <div class="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-3">
         {% for sub in subcategories %}
         <a
             href="{% url 'product-type' sub.slug %}"
-            class="group glass-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden"
-            data-tilt
+            class="group atelier-card reveal stagger-{{ forloop.counter }} flex flex-col overflow-hidden transition-[border-color,box-shadow] duration-200 hover:border-primary/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-            <!-- Image Container -->
-            <div class="aspect-[4/3] relative overflow-hidden bg-background">
+            <div class="img-zoom relative aspect-4/3 overflow-hidden bg-background">
                 {% if sub.image %}
                 <img
                     src="{{ sub.image.url }}?tr=w-900,f-webp,q-80"
                     alt="{{ sub.name_ar }}"
+                    width="800"
+                    height="600"
                     loading="lazy"
                     onerror="this.onerror=null;this.src='{% static 'images/product-placeholder.svg' %}';"
-                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    class="h-full w-full object-cover"
                 />
                 {% else %}
                 <img
                     src="{% static 'images/product-placeholder.svg' %}"
                     alt="{{ sub.name_ar }}"
+                    width="800"
+                    height="600"
                     loading="lazy"
-                    class="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    class="h-full w-full object-cover"
                 />
                 {% endif %}
 
-                <!-- Hover Overlay -->
-                <div
-                    class="absolute inset-0 bg-gradient-to-t from-secondary/50 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                ></div>
-
-                <!-- Badge: subcategories count for nested folder, product count for leaf -->
                 {% if sub.subcategories_count %}
                 <span
-                    class="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-primary backdrop-blur-sm shadow-sm"
+                    class="absolute top-3 end-3 rounded-md border border-secondary/10 bg-surface/92 px-2.5 py-1 text-xs font-bold text-primary tabular-nums backdrop-blur-xs"
                 >
                     {{ sub.subcategories_count }} تصنيف فرعي
                 </span>
                 {% elif sub.products_count %}
                 <span
-                    class="absolute left-4 top-4 rounded-full bg-surface/90 px-3 py-1 text-xs font-bold text-accent backdrop-blur-sm shadow-sm"
+                    class="absolute top-3 end-3 rounded-md border border-secondary/10 bg-surface/92 px-2.5 py-1 text-xs font-bold text-secondary tabular-nums backdrop-blur-xs"
                 >
                     {{ sub.products_count }} منتج
                 </span>
                 {% endif %}
             </div>
 
-            <!-- Subcategory Title -->
-            <div
-                class="flex flex-1 flex-col items-center justify-center p-6 text-center"
-            >
+            <div class="flex items-center justify-between gap-3 p-4 sm:p-5">
                 <h2
-                    class="text-2xl font-black text-primary transition-colors duration-300 group-hover:text-accent"
+                    class="min-w-0 truncate text-base font-bold text-secondary transition-colors group-hover:text-primary sm:text-xl"
                 >
                     {{ sub.name_ar }}
                 </h2>
+                <span
+                    class="shrink-0 text-sm text-secondary/45 transition-colors group-hover:text-primary"
+                    aria-hidden="true"
+                    >←</span
+                >
             </div>
         </a>
         {% empty %}
-        <!-- Friendly Empty Subcategories State -->
         <div
-            class="col-span-full rounded-[2.5rem] border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+            class="col-span-full rounded-2xl border border-secondary/12 bg-surface px-6 py-16 text-center reveal"
         >
             <div
-                class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-3xl text-accent"
+                class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-secondary/10 bg-background text-primary"
+                aria-hidden="true"
             >
-                📂
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
             </div>
-            <h2 class="mb-2 text-xl font-bold text-secondary">
+            <h2 class="mb-1 text-lg font-bold text-secondary">
                 لا توجد تصنيفات فرعية متاحة حالياً
             </h2>
-            <p class="mx-auto max-w-md text-sm text-secondary/50">
+            <p class="mx-auto max-w-md text-sm text-secondary/65">
                 نعمل على تجهيز تصنيفات جديدة داخل هذا القسم قريباً، يرجى العودة لاحقاً.
             </p>
         </div>
@@ -179,8 +168,6 @@
     {% else %}
     <!-- Products Grid (Leaf Category) -->
     <div>{% include "catalog/partials/product_grid.html" %}</div>
-
-    <!-- Pagination -->
     <div>{% include "catalog/partials/pagination.html" %}</div>
     {% endif %}
 </section>

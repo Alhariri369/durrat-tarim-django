@@ -1,121 +1,112 @@
 {% extends "base.html" %} {% block content %}
-<section class="mx-auto max-w-7xl px-4 py-12 md:py-20">
-    <!-- Page Header -->
-    <div class="mb-14 text-center reveal">
-        <span
-            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
-        >
-            تواصلوا معنا
-        </span>
-        <h1 class="text-3xl font-black text-primary md:text-5xl">
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
+    <!-- Editorial Header -->
+    <div class="mb-10 border-b border-secondary/10 pb-6 reveal">
+        <p class="mb-2 flex items-center gap-2.5 text-xs font-bold tracking-wide text-primary">
+            <span class="h-px w-6 bg-gold" aria-hidden="true"></span>
+            <span>خدمة العميلات</span>
+        </p>
+        <h1 class="font-display text-3xl font-bold text-secondary md:text-4xl">
             يسعدنا تواصلكِ معنا
         </h1>
-        <div class="mx-auto mt-4 h-1 w-20 rounded-full bg-accent/30"></div>
-        <p class="mx-auto mt-4 max-w-2xl text-lg text-secondary/55">
-            نحن هنا لمساعدتكِ في اختيار الإطلالة المثالية. لا تترددي في التواصل
-            معنا لأي استفسار.
+        <p class="mt-2 max-w-2xl text-sm text-secondary/70 sm:text-base">
+            نحن هنا لمساعدتكِ في اختيار الإطلالة المثالية والإجابة عن كافة استفساراتكِ.
         </p>
     </div>
 
-    <div class="grid grid-cols-1 items-start gap-10 lg:grid-cols-2">
-        <!-- Contact Info -->
-        <div class="reveal">
-            <div class="glass-card relative overflow-hidden p-8 md:p-12">
-                <div
-                    class="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-accent/5"
-                ></div>
-                <div
-                    class="absolute -bottom-8 -left-8 h-24 w-24 rounded-full bg-primary/5"
-                ></div>
-
-                <h2 class="relative mb-10 text-2xl font-black text-primary">
+    <div class="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
+        <!-- Contact Info Panel -->
+        <div class="lg:col-span-5 reveal">
+            <div class="atelier-card p-6 sm:p-8">
+                <h2 class="mb-6 font-display text-xl font-bold text-secondary sm:text-2xl">
                     معلومات التواصل
                 </h2>
 
-                <div class="relative space-y-8">
+                <div class="space-y-6 text-sm">
                     <!-- Location -->
-                    <div class="flex items-start gap-4">
-                        <div
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-xl"
+                    <div class="flex items-start gap-3.5">
+                        <span
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-secondary/10 bg-background text-primary"
+                            aria-hidden="true"
                         >
-                            📍
-                        </div>
-                        <div>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </span>
+                        <div class="min-w-0">
                             <h3 class="font-bold text-secondary">الموقع</h3>
-                            <p class="leading-relaxed text-secondary/55">
+                            <p class="mt-0.5 leading-relaxed text-secondary/75">
                                 {{ site_settings.address_ar|default:"حضرموت، تريم، سوق الفتح" }}
                             </p>
                         </div>
                     </div>
 
                     <!-- WhatsApp -->
-                    <div class="flex items-start gap-4">
-                        <div
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-whatsapp/10 text-xl"
+                    <div class="flex items-start gap-3.5">
+                        <span
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-whatsapp/20 bg-whatsapp/8 text-whatsapp"
+                            aria-hidden="true"
                         >
-                            📱
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-secondary">واتساب</h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                            </svg>
+                        </span>
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-secondary">واتساب المباشر</h3>
                             <a
                                 href="https://wa.me/{{ site_settings.whatsapp_number|default:'967783278181' }}"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="text-secondary/55 transition-colors hover:text-whatsapp"
+                                class="mt-0.5 inline-block text-secondary/75 tabular-nums transition-colors hover:text-whatsapp focus-visible:outline-none focus-visible:underline"
                                 dir="ltr"
                             >
-                                {{ site_settings.whatsapp_number|default:"+967 783 278 181" }}
+                                +{{ site_settings.whatsapp_number|default:"967783278181" }}
                             </a>
                         </div>
                     </div>
 
                     <!-- Working Hours -->
-                    <div class="flex items-start gap-4">
-                        <div
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-xl"
+                    <div class="flex items-start gap-3.5">
+                        <span
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-secondary/10 bg-background text-primary"
+                            aria-hidden="true"
                         >
-                            ⏰
-                        </div>
-                        <div class="w-full text-secondary/55">
-                            <h3 class="mb-2 font-bold text-secondary">
-                                أوقات العمل
-                            </h3>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </span>
+                        <div class="min-w-0 flex-1 text-secondary/75">
+                            <h3 class="mb-2 font-bold text-secondary">أوقات العمل</h3>
                             <div
-                                class="flex justify-between gap-8 border-b border-secondary/5 pb-1.5"
+                                class="flex justify-between gap-4 border-b border-secondary/8 pb-2 tabular-nums"
                             >
-                                <span>السبت - الخميس</span>
-                                <span class="font-bold">9:00 ص - 9:30 م</span>
+                                <span>السبت – الخميس</span>
+                                <span class="font-bold text-secondary">9:00 ص – 9:30 م</span>
                             </div>
-                            <div class="flex justify-between gap-8 pt-1.5">
+                            <div class="flex justify-between gap-4 pt-2 tabular-nums">
                                 <span>الجمعة</span>
-                                <span class="font-bold">4:00 م - 10:00 م</span>
+                                <span class="font-bold text-secondary">4:00 م – 10:00 م</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Social Networks -->
-                    <div class="flex items-start gap-4">
-                        <div
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-xl"
-                        >
-                            💕
-                        </div>
-                        <div>
-                            <h3 class="mb-3 font-bold text-secondary">
-                                تابعينا على
-                            </h3>
-                            {% include "partials/social_links.html" %}
-                        </div>
+                    <div class="border-t border-secondary/10 pt-5">
+                        <h3 class="mb-3 text-xs font-bold tracking-wide text-secondary/70">
+                            تابعينا على المنصات
+                        </h3>
+                        {% include "partials/social_links.html" %}
                     </div>
                 </div>
 
                 <!-- Map -->
                 <div
-                    class="relative mt-10 overflow-hidden rounded-2xl border-4 border-background shadow-inner"
+                    class="mt-6 overflow-hidden rounded-xl border border-secondary/12 bg-background"
                 >
                     <iframe
                         src="{{ site_settings.map_iframe_url|default:'https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3839.227361623842!2d48.9772408!3d16.053167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTbCsDAzJzExLjQiTiA0OMKwNTgnMzgwMSJF!5e0!3m2!1sen!2sye!4v1700000000000' }}"
-                        class="h-64 w-full border-0 transition-all duration-700"
+                        class="h-56 w-full border-0"
                         allowfullscreen=""
                         loading="lazy"
                         title="موقعنا على الخريطة"
@@ -124,100 +115,121 @@
             </div>
         </div>
 
-        <!-- Contact Form -->
-        <div class="reveal stagger-2 p-2 md:p-6">
-            {% if messages %}
-            <div class="mb-8 space-y-2">
-                {% for message in messages %}
-                <div
-                    class="rounded-2xl border-l-4 p-4 text-sm font-bold {% if message.tags == 'success' %}border-emerald-500 bg-emerald-50 text-emerald-700{% else %}border-red-500 bg-red-50 text-red-700{% endif %}"
-                >
-                    {{ message }}
-                </div>
-                {% endfor %}
+        <!-- Contact Form Panel -->
+        <div class="lg:col-span-7 reveal stagger-2">
+            <div class="atelier-card p-6 sm:p-8">
+                <h2 class="mb-2 font-display text-xl font-bold text-secondary sm:text-2xl">
+                    أرسلي رسالة
+                </h2>
+                <p class="mb-6 text-sm text-secondary/70">
+                    املئي النموذج أدناه وسنقوم بالرد عليكِ خلال 24 ساعة عمل.
+                </p>
+
+                <form method="post" class="space-y-5" novalidate>
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div
+                        role="alert"
+                        class="rounded-xl border border-red-200 border-s-4 border-s-red-600 bg-red-50 p-4 text-sm font-bold text-red-700"
+                    >
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                        <div class="space-y-1.5" data-field-group>
+                            <label
+                                for="{{ form.name.id_for_label }}"
+                                class="block text-sm font-bold text-secondary"
+                            >
+                                {{ form.name.label }}
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <p
+                                id="error-contact-name"
+                                data-field-error
+                                role="alert"
+                                class="text-xs font-bold text-red-600"
+                            >
+                                {{ form.name.errors.0 }}
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="space-y-1.5" data-field-group>
+                            <label
+                                for="{{ form.phone.id_for_label }}"
+                                class="block text-sm font-bold text-secondary"
+                            >
+                                {{ form.phone.label }}
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                            <p
+                                id="error-contact-phone"
+                                data-field-error
+                                role="alert"
+                                class="text-xs font-bold text-red-600"
+                            >
+                                {{ form.phone.errors.0 }}
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="space-y-1.5" data-field-group>
+                        <label
+                            for="{{ form.subject.id_for_label }}"
+                            class="block text-sm font-bold text-secondary"
+                        >
+                            {{ form.subject.label }}
+                            <span class="text-xs font-normal text-secondary/55">(اختياري)</span>
+                        </label>
+                        {{ form.subject }}
+                        {% if form.subject.errors %}
+                        <p
+                            id="error-contact-subject"
+                            data-field-error
+                            role="alert"
+                            class="text-xs font-bold text-red-600"
+                        >
+                            {{ form.subject.errors.0 }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-1.5" data-field-group>
+                        <label
+                            for="{{ form.message.id_for_label }}"
+                            class="block text-sm font-bold text-secondary"
+                        >
+                            {{ form.message.label }}
+                        </label>
+                        {{ form.message }}
+                        {% if form.message.errors %}
+                        <p
+                            id="error-contact-message"
+                            data-field-error
+                            role="alert"
+                            class="text-xs font-bold text-red-600"
+                        >
+                            {{ form.message.errors.0 }}
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Honeypot -->
+                    <div class="hidden" aria-hidden="true">{{ form.website }}</div>
+
+                    <button
+                        type="submit"
+                        class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-surface transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:text-base"
+                    >
+                        إرسال الرسالة
+                    </button>
+                </form>
             </div>
-            {% endif %}
-
-            <form method="post" class="space-y-5" novalidate>
-                {% csrf_token %} {% if form.non_field_errors %}
-                <div
-                    class="rounded-2xl border-l-4 border-red-500 bg-red-50 p-4 text-sm font-medium text-red-700"
-                >
-                    {{ form.non_field_errors }}
-                </div>
-                {% endif %}
-
-                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                    <div class="space-y-2">
-                        <label
-                            for="{{ form.name.id_for_label }}"
-                            class="block text-sm font-bold text-secondary/70"
-                        >
-                            {{ form.name.label }}
-                        </label>
-                        {{ form.name }} {% if form.name.errors %}
-                        <p class="mt-1 text-xs font-medium text-red-500">
-                            {{ form.name.errors.0 }}
-                        </p>
-                        {% endif %}
-                    </div>
-                    <div class="space-y-2">
-                        <label
-                            for="{{ form.phone.id_for_label }}"
-                            class="block text-sm font-bold text-secondary/70"
-                        >
-                            {{ form.phone.label }}
-                        </label>
-                        {{ form.phone }} {% if form.phone.errors %}
-                        <p class="mt-1 text-xs font-medium text-red-500">
-                            {{ form.phone.errors.0 }}
-                        </p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="space-y-2">
-                    <label
-                        for="{{ form.subject.id_for_label }}"
-                        class="block text-sm font-bold text-secondary/70"
-                    >
-                        {{ form.subject.label }}
-                    </label>
-                    {{ form.subject }} {% if form.subject.errors %}
-                    <p class="mt-1 text-xs font-medium text-red-500">
-                        {{ form.subject.errors.0 }}
-                    </p>
-                    {% endif %}
-                </div>
-
-                <div class="space-y-2">
-                    <label
-                        for="{{ form.message.id_for_label }}"
-                        class="block text-sm font-bold text-secondary/70"
-                    >
-                        {{ form.message.label }}
-                    </label>
-                    {{ form.message }} {% if form.message.errors %}
-                    <p class="mt-1 text-xs font-medium text-red-500">
-                        {{ form.message.errors.0 }}
-                    </p>
-                    {% endif %}
-                </div>
-
-                <!-- Honeypot -->
-                <div class="hidden" aria-hidden="true">{{ form.website }}</div>
-
-                <button
-                    type="submit"
-                    class="w-full rounded-2xl bg-primary py-4 text-base font-black text-background shadow-lg shadow-primary/20 transition-all hover:opacity-90 hover:shadow-xl active:scale-[0.98]"
-                >
-                    إرسال الرسالة
-                </button>
-            </form>
-
-            <p class="mt-6 text-center text-sm text-secondary/40">
-                سنقوم بالرد عليكِ خلال 24 ساعة عمل.
-            </p>
         </div>
     </div>
 </section>
