@@ -19,8 +19,9 @@ class StaticViewSitemap(Sitemap):
     def items(self):
         return [
             ("home", 1.0),
+            ("product-list", 0.85),
             ("product-types", 0.8),
-            ("contact", 0.4),
+            ("contact", 0.5),
         ]
 
     def location(self, item):

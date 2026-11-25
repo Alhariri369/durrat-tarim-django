@@ -159,3 +159,7 @@ html.dark .gradient-hero {
         transition-duration: 0.01ms !important;
     }
 }
+
+[data-slide][hidden] {
+    display: none !important;
+}

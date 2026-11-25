@@ -2,7 +2,7 @@
 <!doctype html>
 <html lang="ar" dir="rtl" class="scroll-smooth">
     <head>
-        {% include 'partials/head.html' %}
+        {% include 'partials/head.html' with robots_content=robots_content|default:'noindex,nofollow' page_title=page_title|default:'حسابي | درة تريم' %}
         {% block extra_head %}{% endblock extra_head %}
     </head>
     <body

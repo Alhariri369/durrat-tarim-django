@@ -73,7 +73,14 @@ def register(request):
         return redirect(get_post_login_url(request, request.user))
 
     if request.method == "GET":
-        return render(request, "register.html")
+        return render(
+            request,
+            "register.html",
+            {
+                "page_title": "إنشاء حساب | درة تريم",
+                "robots_content": "noindex,nofollow",
+            },
+        )
 
     # --- POST: validate, create the account, then force email verification ---
     # Field names must match the inputs in register.html.
@@ -81,7 +88,12 @@ def register(request):
     password = request.POST.get("password1") or request.POST.get("password", "")
     password_confirmation = request.POST.get("password2", password)
     full_name = request.POST.get("full_name", "").strip()
-    context = {"email": email, "full_name": full_name}
+    context = {
+        "email": email,
+        "full_name": full_name,
+        "page_title": "إنشاء حساب | درة تريم",
+        "robots_content": "noindex,nofollow",
+    }
 
     # Each failure path re-renders the form with status 400 so the browser
     # doesn't retry the POST, and the user keeps their typed values.
@@ -131,7 +143,15 @@ def login(request):
         return redirect(get_post_login_url(request, request.user))
 
     if request.method == "GET":
-        return render(request, "login.html", {"next": request.GET.get("next", "")})
+        return render(
+            request,
+            "login.html",
+            {
+                "next": request.GET.get("next", ""),
+                "page_title": "تسجيل الدخول | درة تريم",
+                "robots_content": "noindex,nofollow",
+            },
+        )
 
     email = (request.POST.get("email") or request.POST.get("login", "")).strip()
     password = request.POST.get("password", "")
@@ -147,7 +167,11 @@ def login(request):
         return render(
             request,
             "login.html",
-            {"error": "Too many failed attempts. Try again later."},
+            {
+                "error": "Too many failed attempts. Try again later.",
+                "page_title": "تسجيل الدخول | درة تريم",
+                "robots_content": "noindex,nofollow",
+            },
             status=429,
         )
 
@@ -155,7 +179,14 @@ def login(request):
     if not user:
         cache.set(cache_key, attempts + 1, timeout=LOGIN_ATTEMPT_TIMEOUT)
         return render(
-            request, "login.html", {"error": "Invalid credentials."}, status=401
+            request,
+            "login.html",
+            {
+                "error": "Invalid credentials.",
+                "page_title": "تسجيل الدخول | درة تريم",
+                "robots_content": "noindex,nofollow",
+            },
+            status=401,
         )
 
     # Success resets the failure counter.

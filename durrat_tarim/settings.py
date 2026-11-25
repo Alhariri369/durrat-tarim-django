@@ -11,7 +11,24 @@ if not SECRET_KEY:
     raise RuntimeError("DJANGO_SECRET_KEY must be set")
 
 DEBUG = os.getenv("DJANGO_DEBUG", "False") == "True"
-ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]
+ALLOWED_HOSTS = [
+    ".vercel.app",
+    "durrattarim.com",
+    "www.durrattarim.com",
+    "durrat-tarim.com",
+    "www.durrat-tarim.com",
+    "127.0.0.1",
+    "localhost",
+]
+
+CANONICAL_DOMAIN = os.getenv("CANONICAL_DOMAIN", "durrattarim.com")
+ALLOW_VERCEL_APP_INDEXING = (
+    os.getenv("ALLOW_VERCEL_APP_INDEXING", "False") == "True"
+)
+GOOGLE_SITE_VERIFICATION = os.getenv(
+    "GOOGLE_SITE_VERIFICATION",
+    "Nw2fa1L4QIRwROBucFvq9n1e796Zsbk0XyTbAPx4nyw",
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -41,6 +58,7 @@ AUTHENTICATION_BACKENDS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "durrat_tarim.middleware.SeoHeadersMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -214,6 +232,8 @@ if not DEBUG:
 
 CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
+    "https://durrattarim.com",
+    "https://www.durrattarim.com",
     "https://durrat-tarim.com",
     "https://www.durrat-tarim.com",
 ]

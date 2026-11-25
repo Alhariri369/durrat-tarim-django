@@ -1,6 +1,7 @@
 import json
 
 from django import template
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
@@ -40,7 +41,7 @@ def product_json_ld(context, product):
         "description": (product.description_ar or product.name_ar)[:5000],
         "sku": product.slug,
         "url": url,
-        "brand": {"@type": "Brand", "name": "درّة تريم"},
+        "brand": {"@type": "Brand", "name": "درة تريم"},
         "offers": {
             "@type": "Offer",
             "url": url,
@@ -102,6 +103,31 @@ def category_json_ld(context, category, products=None, subcategories=None):
     return {"json_ld": _json_ld(data)}
 
 
+@register.inclusion_tag("catalog/partials/category_json_ld.html", takes_context=True)
+def catalog_json_ld(context, name, url_path, products):
+    """Render CollectionPage JSON-LD for a general catalog listing (/products/)."""
+    request = context["request"]
+    items = [
+        {
+            "@type": "ListItem",
+            "position": position,
+            "name": product.name_ar,
+            "url": _absolute_uri(
+                request, reverse("product-detail", args=[product.pk])
+            ),
+        }
+        for position, product in enumerate(products, start=1)
+    ]
+    data = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": f"{name} | درة تريم",
+        "url": _absolute_uri(request, url_path),
+        "mainEntity": {"@type": "ItemList", "itemListElement": items},
+    }
+    return {"json_ld": _json_ld(data)}
+
+
 @register.inclusion_tag("catalog/partials/breadcrumb_json_ld.html", takes_context=True)
 def breadcrumb_json_ld(context, items):
     """Render BreadcrumbList JSON-LD from a list of (name, url) pairs.
@@ -128,3 +154,126 @@ def breadcrumb_json_ld(context, items):
             }
         )
     }
+
+
+@register.inclusion_tag("catalog/partials/store_json_ld.html", takes_context=True)
+def store_json_ld(context):
+    """Render site-wide ClothingStore (local SEO) and WebSite (SearchAction) JSON-LD."""
+    request = context["request"]
+    site_settings = context.get("site_settings")
+    base_url = f"{request.scheme}://{request.get_host()}"
+    logo_url = _absolute_uri(request, static("images/logo-gold-transparent.png"))
+    og_image_url = context.get("default_og_image_url") or _absolute_uri(
+        request, static("images/og-default.jpg")
+    )
+    whatsapp = (
+        getattr(site_settings, "whatsapp_number", "") or "967783278181"
+    ).lstrip("+")
+    address_ar = getattr(site_settings, "address_ar", "") or "سوق الفتح"
+
+    store_data = {
+        "@context": "https://schema.org",
+        "@type": "ClothingStore",
+        "name": "درة تريم",
+        "description": "متجر درة تريم للقطع العرائسية والأقمشة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.",
+        "url": base_url,
+        "logo": logo_url,
+        "image": og_image_url,
+        "telephone": f"+{whatsapp}",
+        "priceRange": "$$",
+        "currenciesAccepted": "SAR, YER",
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": address_ar,
+            "addressLocality": "تريم",
+            "addressRegion": "حضرموت",
+            "addressCountry": "YE",
+        },
+        "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 16.05294,
+            "longitude": 48.97709,
+        },
+        "areaServed": [
+            {"@type": "City", "name": "تريم"},
+            {"@type": "City", "name": "سيئون"},
+            {"@type": "AdministrativeArea", "name": "وادي حضرموت"},
+            {"@type": "Country", "name": "اليمن"},
+        ],
+        "openingHoursSpecification": [
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": [
+                    "Saturday",
+                    "Sunday",
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                ],
+                "opens": "09:00",
+                "closes": "21:30",
+            },
+            {
+                "@type": "OpeningHoursSpecification",
+                "dayOfWeek": ["Friday"],
+                "opens": "16:00",
+                "closes": "22:00",
+            },
+        ],
+        "contactPoint": {
+            "@type": "ContactPoint",
+            "telephone": f"+{whatsapp}",
+            "contactType": "customer service",
+            "areaServed": "YE",
+            "availableLanguage": ["Arabic"],
+        },
+        "sameAs": [
+            "https://www.instagram.com/durttrim/",
+            "https://www.snapchat.com/add/durttrim",
+            "https://www.tiktok.com/@durttrim",
+        ],
+    }
+
+    website_data = {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "url": base_url,
+        "name": "درة تريم",
+        "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": f"{base_url}{reverse('product-search')}?q={{search_term_string}}",
+            },
+            "query-input": "required name=search_term_string",
+        },
+    }
+
+    return {
+        "store_json_ld": _json_ld(store_data),
+        "website_json_ld": _json_ld(website_data),
+    }
+
+
+@register.inclusion_tag("catalog/partials/faq_json_ld.html")
+def faq_json_ld(faqs):
+    """Render FAQPage JSON-LD from a list of {'question', 'answer'} dicts."""
+    if not faqs:
+        return {"json_ld": ""}
+    data = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": item["question"],
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": item["answer"],
+                },
+            }
+            for item in faqs
+        ],
+    }
+    return {"json_ld": _json_ld(data)}

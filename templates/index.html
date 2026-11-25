@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% load static %} {% block content %}
+{% extends "base.html" %} {% load static catalog_tags %} {% block content %}
+{% faq_json_ld faqs %}
 <!-- ============================================================
      HERO SECTION
      ============================================================ -->
@@ -188,7 +189,7 @@
                 </h2>
             </div>
             <a
-                href="{% url 'product-search' %}"
+                href="{% url 'product-list' %}"
                 class="inline-flex min-h-10 items-center gap-1.5 text-sm font-bold text-primary transition-colors hover:text-secondary focus-visible:outline-none focus-visible:underline"
             >
                 <span>عرض الكل</span>
@@ -200,7 +201,7 @@
 
         <div class="mt-12 text-center reveal">
             <a
-                href="{% url 'product-search' %}"
+                href="{% url 'product-list' %}"
                 class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-secondary/20 bg-surface px-8 py-3 text-sm font-bold text-secondary transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
                 <span>استكشفي جميع المنتجات</span>
@@ -237,7 +238,7 @@
                     تصفحي التشكيلة
                 </h3>
                 <p class="text-sm leading-relaxed text-secondary/70">
-                    استعرضي أحدث العبايات والفساتين وتعرفي على الأسعار بالريال السعودي واليمني أو احفظي ما يعجبكِ في المفضلة.
+                    استعرضي أحدث القطع العرائسية والأقمشة والأزياء الراقية وتعرفي على الأسعار بالريال السعودي واليمني أو احفظي ما يعجبكِ في المفضلة.
                 </p>
             </div>
 
@@ -257,9 +258,8 @@
                     تأكيد وتجهيز الطلب
                 </h3>
                 <p class="text-sm leading-relaxed text-secondary/70">
-                    نؤكد معكِ المقاسات وخيارات الاستلام أو التوصيل، ونجهز طلبكِ بعناية فائقة.
+                    نؤكد معكِ المقاسات وخيارات الاستلام أو التوصيل في تريم وسيئون ووادي حضرموت وكافة مناطق اليمن، ونجهز طلبكِ بعناية فائقة.
                 </p>
-            </div>
         </div>
     </div>
 </section>
@@ -322,16 +322,16 @@
     </div>
 
     <div class="divide-y divide-secondary/10 overflow-hidden rounded-2xl border border-secondary/10 bg-surface reveal">
-        <!-- FAQ 1 -->
+        {% for faq in faqs %}
         <div>
             <button
                 type="button"
                 data-faq-toggle
                 aria-expanded="false"
-                aria-controls="faq-panel-1"
+                aria-controls="faq-panel-{{ forloop.counter }}"
                 class="flex w-full items-center justify-between gap-4 p-5 text-start text-base font-bold text-secondary transition-colors hover:bg-background/60 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
             >
-                <span>كيف يمكنني طلب منتج؟</span>
+                <span>{{ faq.question }}</span>
                 <svg
                     data-faq-icon
                     xmlns="http://www.w3.org/2000/svg"
@@ -345,109 +345,13 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
             </button>
-            <div id="faq-panel-1" hidden class="px-5 pb-5 sm:px-6 sm:pb-6">
+            <div id="faq-panel-{{ forloop.counter }}" hidden class="px-5 pb-5 sm:px-6 sm:pb-6">
                 <p class="text-sm leading-relaxed text-secondary/75">
-                    يمكنكِ تصفح المنتجات والضغط على زر "استفسار واتساب" لأي منتج
-                    يعجبكِ، وسيتم توجيهكِ مباشرة إلى محادثة واتساب برسالة جاهزة
-                    تحتوي على تفاصيل القطعة لتأكيد طلبكِ بسرعة.
+                    {{ faq.answer }}
                 </p>
             </div>
         </div>
-
-        <!-- FAQ 2 -->
-        <div>
-            <button
-                type="button"
-                data-faq-toggle
-                aria-expanded="false"
-                aria-controls="faq-panel-2"
-                class="flex w-full items-center justify-between gap-4 p-5 text-start text-base font-bold text-secondary transition-colors hover:bg-background/60 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
-            >
-                <span>ما هي طرق الدفع المتاحة؟</span>
-                <svg
-                    data-faq-icon
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 shrink-0 text-primary transition-transform duration-200"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    aria-hidden="true"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div id="faq-panel-2" hidden class="px-5 pb-5 sm:px-6 sm:pb-6">
-                <p class="text-sm leading-relaxed text-secondary/75">
-                    نقبل الدفع في المحل والتحويل البنكي. سيتم توضيح كافة خيارات
-                    الدفع المتاحة عند تأكيد طلبكِ عبر واتساب.
-                </p>
-            </div>
-        </div>
-
-        <!-- FAQ 3 -->
-        <div>
-            <button
-                type="button"
-                data-faq-toggle
-                aria-expanded="false"
-                aria-controls="faq-panel-3"
-                class="flex w-full items-center justify-between gap-4 p-5 text-start text-base font-bold text-secondary transition-colors hover:bg-background/60 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
-            >
-                <span>هل يمكنني إرجاع أو استبدال المنتج؟</span>
-                <svg
-                    data-faq-icon
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 shrink-0 text-primary transition-transform duration-200"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    aria-hidden="true"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div id="faq-panel-3" hidden class="px-5 pb-5 sm:px-6 sm:pb-6">
-                <p class="text-sm leading-relaxed text-secondary/75">
-                    نعم، نوفر سياسة إرجاع خلال يوم واحد واستبدال خلال 3 أيام من
-                    استلام المنتج، بشرط أن يكون بحالته الأصلية. يرجى التواصل معنا
-                    عبر واتساب لترتيب عملية الإرجاع أو الاستبدال.
-                </p>
-            </div>
-        </div>
-
-        <!-- FAQ 4 -->
-        <div>
-            <button
-                type="button"
-                data-faq-toggle
-                aria-expanded="false"
-                aria-controls="faq-panel-4"
-                class="flex w-full items-center justify-between gap-4 p-5 text-start text-base font-bold text-secondary transition-colors hover:bg-background/60 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
-            >
-                <span>كيف أضيف منتجات إلى المفضلة؟</span>
-                <svg
-                    data-faq-icon
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5 shrink-0 text-primary transition-transform duration-200"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    aria-hidden="true"
-                >
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-            <div id="faq-panel-4" hidden class="px-5 pb-5 sm:px-6 sm:pb-6">
-                <p class="text-sm leading-relaxed text-secondary/75">
-                    يمكنكِ إنشاء حساب وتوثيق بريدكِ الإلكتروني، ثم الضغط على أيقونة
-                    القلب في أي منتج لحفظه. بعدها يمكنكِ تحديد عدة منتجات من صفحة
-                    المفضلة وإرسالها في استفسار واحد عبر واتساب.
-                </p>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </section>
 

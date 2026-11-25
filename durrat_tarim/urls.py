@@ -2,12 +2,16 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse
+from django.templatetags.static import static as static_url
 from django.urls import include, path, reverse
 from django.views.generic import RedirectView
 
 from catalog import views as catalog_views
 from catalog.sitemaps import CategorySitemap, ProductSitemap, StaticViewSitemap
 from durrat_tarim import sitemap_views
+from durrat_tarim.middleware import is_noindex_host
+
+handler404 = "durrat_tarim.views.error_404"
 
 sitemaps = {
     "static": StaticViewSitemap,
@@ -17,8 +21,14 @@ sitemaps = {
 
 
 def robots_txt(request):
-    """Serve robots.txt: allow the storefront, keep private/app areas out of
-    the index, and point crawlers at the sitemap index."""
+    """Serve robots.txt: block indexing on .vercel.app preview/staging hosts,
+    otherwise allow the storefront, keep private/app/search areas out of the
+    index, and point crawlers at the sitemap index."""
+    if is_noindex_host(request):
+        return HttpResponse(
+            "User-agent: *\nDisallow: /\n", content_type="text/plain"
+        )
+
     sitemap_url = request.build_absolute_uri(
         reverse("django.contrib.sitemaps.views.index")
     )
@@ -30,7 +40,12 @@ def robots_txt(request):
         "Disallow: /dashboard/",
         "Disallow: /favorites/",
         "Disallow: /search/",
-        "Disallow: /*?*",
+        "Disallow: /products/search/",
+        "Disallow: /products/items/*/whatsapp/",
+        "Disallow: /products/items/*/favorite/",
+        "Disallow: /products/items/*/unfavorite/",
+        "Disallow: /*?q=*",
+        "Disallow: /*?product_desc=*",
         f"Sitemap: {sitemap_url}",
         "",
     ]
@@ -79,6 +94,11 @@ urlpatterns = [
         name="django.contrib.sitemaps.views.sitemap",
     ),
     path("robots.txt", robots_txt, name="robots"),
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url=static_url("images/favicon.png"), permanent=True),
+        name="favicon",
+    ),
 ]
 
 if settings.DEBUG:

@@ -1,16 +1,20 @@
 import io
 import json
+import re
+import tempfile
 import urllib.error
 from decimal import Decimal
+from html.parser import HTMLParser
 from unittest.mock import MagicMock, patch
 
 from django.contrib.auth.models import AnonymousUser
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import User
-from catalog.models import Category, Product, StoreSettings
+from catalog.models import Category, FeaturedProduct, Product, StoreSettings
 
 from .context_processors import site_context
 from .email_backend import ResendEmailBackend
@@ -320,5 +324,304 @@ class SitemapAndRobotsTests(TestCase):
         self.assertIn("Disallow: /dashboard/", body)
         self.assertIn("Disallow: /favorites/", body)
         self.assertIn("Disallow: /search/", body)
-        self.assertIn("Disallow: /*?*", body)
+        self.assertIn("Disallow: /products/search/", body)
+        self.assertIn("Disallow: /products/items/*/whatsapp/", body)
+        self.assertIn("Disallow: /*?q=*", body)
+        self.assertNotIn("Disallow: /*?*\n", body)
         self.assertIn("Sitemap: http://testserver/sitemap.xml", body)
+
+
+class _HeadSeoParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self._in_title = False
+        self._in_ld = False
+        self._ld_chunks = []
+        self.titles = []
+        self.metas = []
+        self.links = []
+        self.json_lds = []
+        self.h1_count = 0
+
+    def handle_starttag(self, tag, attrs):
+        attr_map = dict(attrs)
+        if tag == "title":
+            self._in_title = True
+            self.titles.append("")
+        elif tag == "meta":
+            self.metas.append(attr_map)
+        elif tag == "link":
+            self.links.append(attr_map)
+        elif tag == "h1":
+            self.h1_count += 1
+        elif tag == "script" and attr_map.get("type") == "application/ld+json":
+            self._in_ld = True
+            self._ld_chunks = []
+
+    def handle_endtag(self, tag):
+        if tag == "title":
+            self._in_title = False
+        elif tag == "script" and self._in_ld:
+            self._in_ld = False
+            self.json_lds.append("".join(self._ld_chunks).strip())
+
+    def handle_data(self, data):
+        if self._in_title:
+            self.titles[-1] += data
+        elif self._in_ld:
+            self._ld_chunks.append(data)
+
+
+def _parse_seo(html_bytes):
+    parser = _HeadSeoParser()
+    parser.feed(html_bytes.decode("utf-8"))
+    return parser
+
+
+def _tiny_image(name="seo.jpg"):
+    from PIL import Image
+
+    img = Image.new("RGB", (60, 80), color=(107, 76, 140))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG")
+    return SimpleUploadedFile(name, buf.getvalue(), content_type="image/jpeg")
+
+
+class SeoMetadataAndSchemaTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls._temp_media = tempfile.TemporaryDirectory()
+        cls._storage_override = override_settings(
+            MEDIA_ROOT=cls._temp_media.name,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                    "OPTIONS": {"location": cls._temp_media.name},
+                },
+                "staticfiles": {
+                    "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+                },
+            },
+        )
+        cls._storage_override.enable()
+        try:
+            super().setUpClass()
+        except Exception:
+            cls._storage_override.disable()
+            cls._temp_media.cleanup()
+            raise
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            super().tearDownClass()
+        finally:
+            cls._storage_override.disable()
+            cls._temp_media.cleanup()
+
+    @classmethod
+    def setUpTestData(cls):
+        StoreSettings.get_current()
+        cls.category = Category.objects.create(
+            name_ar="قطع عرائسية",
+            slug="bridal-pieces",
+            image=_tiny_image("cat.jpg"),
+        )
+        cls.products = []
+        for idx in range(14):
+            prod = Product.objects.create(
+                name_ar=f"قطعة عرائسية مطرزة {idx}",
+                slug=f"bridal-piece-{idx}",
+                description_ar=f"وصف قطعة رقم {idx} من درة تريم.",
+                category=cls.category,
+                price_sar=Decimal("250.00"),
+                image=_tiny_image(f"prod-{idx}.jpg"),
+            )
+            cls.products.append(prod)
+        FeaturedProduct.objects.create(product=cls.products[0], display_order=1)
+        FeaturedProduct.objects.create(product=cls.products[1], display_order=2)
+
+    def _canonical(self, parsed):
+        return next(
+            (link["href"] for link in parsed.links if link.get("rel") == "canonical"),
+            None,
+        )
+
+    def _meta(self, parsed, name):
+        return next(
+            (m.get("content") for m in parsed.metas if m.get("name") == name),
+            None,
+        )
+
+    def test_titles_are_single_line_without_duplication(self):
+        routes = [
+            reverse("home"),
+            reverse("product-list"),
+            f"{reverse('product-list')}?page=2",
+            reverse("product-types"),
+            reverse("product-type", args=[self.category.slug]),
+            f"{reverse('product-type', args=[self.category.slug])}?page=2",
+            reverse("product-detail", args=[self.products[0].pk]),
+            f"{reverse('product-search')}?q=عرائسية",
+            reverse("contact"),
+            reverse("account_login"),
+            reverse("account_signup"),
+            "/this-page-does-not-exist-404/",
+        ]
+        for url in routes:
+            with self.subTest(url=url):
+                resp = self.client.get(url, HTTP_HOST="durrattarim.com")
+                parsed = _parse_seo(resp.content)
+                self.assertEqual(len(parsed.titles), 1)
+                title = parsed.titles[0]
+                self.assertNotIn("\n", title)
+                self.assertEqual(title.count("درة تريم"), 1)
+                self.assertTrue(self._meta(parsed, "description"))
+
+        prod_title = _parse_seo(
+            self.client.get(
+                reverse("product-detail", args=[self.products[0].pk]),
+                HTTP_HOST="durrattarim.com",
+            ).content
+        ).titles[0]
+        self.assertEqual(prod_title.count(self.products[0].name_ar), 1)
+
+        cat_title = _parse_seo(
+            self.client.get(
+                reverse("product-type", args=[self.category.slug]),
+                HTTP_HOST="durrattarim.com",
+            ).content
+        ).titles[0]
+        self.assertEqual(cat_title.count(self.category.name_ar), 1)
+
+    def test_canonical_urls_strip_tracking_and_handle_pagination(self):
+        home_parsed = _parse_seo(
+            self.client.get("/?utm_source=ig&fbclid=123", HTTP_HOST="durrattarim.com").content
+        )
+        self.assertEqual(self._canonical(home_parsed), "http://durrattarim.com/")
+
+        p1_parsed = _parse_seo(
+            self.client.get(
+                f"{reverse('product-list')}?page=1&utm_medium=social",
+                HTTP_HOST="durrattarim.com",
+            ).content
+        )
+        self.assertEqual(self._canonical(p1_parsed), "http://durrattarim.com/products/")
+
+        p2_parsed = _parse_seo(
+            self.client.get(
+                f"{reverse('product-list')}?page=2&utm_source=x",
+                HTTP_HOST="durrattarim.com",
+            ).content
+        )
+        self.assertEqual(
+            self._canonical(p2_parsed), "http://durrattarim.com/products/?page=2"
+        )
+
+        cat_p2 = _parse_seo(
+            self.client.get(
+                f"{reverse('product-type', args=[self.category.slug])}?page=2",
+                HTTP_HOST="durrattarim.com",
+            ).content
+        )
+        self.assertEqual(
+            self._canonical(cat_p2),
+            f"http://durrattarim.com/products/types/{self.category.slug}/?page=2",
+        )
+
+        empty_search = _parse_seo(
+            self.client.get(reverse("product-search"), HTTP_HOST="durrattarim.com").content
+        )
+        self.assertEqual(
+            self._canonical(empty_search), "http://durrattarim.com/products/"
+        )
+
+    def test_vercel_app_hosts_are_blocked_while_custom_domain_is_indexable(self):
+        for host in ("durrat-tarim-dev.vercel.app", "durttrim.vercel.app"):
+            with self.subTest(host=host):
+                resp = self.client.get("/", HTTP_HOST=host)
+                self.assertEqual(resp.headers.get("X-Robots-Tag"), "noindex, nofollow")
+                parsed = _parse_seo(resp.content)
+                self.assertEqual(self._meta(parsed, "robots"), "noindex,nofollow")
+                self.assertIsNone(self._meta(parsed, "google-site-verification"))
+                robots_resp = self.client.get("/robots.txt", HTTP_HOST=host)
+                self.assertEqual(
+                    robots_resp.content.decode("utf-8"), "User-agent: *\nDisallow: /\n"
+                )
+
+        prod_resp = self.client.get("/", HTTP_HOST="durrattarim.com")
+        self.assertNotIn("X-Robots-Tag", prod_resp.headers)
+        prod_parsed = _parse_seo(prod_resp.content)
+        self.assertEqual(self._meta(prod_parsed, "robots"), "index,follow")
+        self.assertTrue(self._meta(prod_parsed, "google-site-verification"))
+
+        for noindex_url in (
+            reverse("account_login"),
+            reverse("account_signup"),
+            "/missing-route-404/",
+        ):
+            r = self.client.get(noindex_url, HTTP_HOST="durrattarim.com")
+            self.assertEqual(
+                self._meta(_parse_seo(r.content), "robots"), "noindex,nofollow"
+            )
+
+        with override_settings(ALLOW_VERCEL_APP_INDEXING=True):
+            allowed_resp = self.client.get("/", HTTP_HOST="durttrim.vercel.app")
+            self.assertNotIn("X-Robots-Tag", allowed_resp.headers)
+            self.assertEqual(
+                self._meta(_parse_seo(allowed_resp.content), "robots"), "index,follow"
+            )
+
+    def test_json_ld_schemas_parse_cleanly_with_hadhramout_local_seo(self):
+        home_resp = self.client.get("/", HTTP_HOST="durrattarim.com")
+        home_parsed = _parse_seo(home_resp.content)
+        self.assertEqual(home_parsed.h1_count, 1)
+        home_schemas = [json.loads(raw) for raw in home_parsed.json_lds]
+        types = {s["@type"] for s in home_schemas}
+        self.assertEqual(types, {"ClothingStore", "WebSite", "FAQPage"})
+        store = next(s for s in home_schemas if s["@type"] == "ClothingStore")
+        self.assertEqual(store["address"]["addressLocality"], "تريم")
+        self.assertEqual(store["address"]["addressRegion"], "حضرموت")
+        self.assertEqual(store["address"]["addressCountry"], "YE")
+        areas = {a["name"] for a in store["areaServed"]}
+        self.assertEqual(areas, {"تريم", "سيئون", "وادي حضرموت", "اليمن"})
+
+        for url, expected_types in (
+            (reverse("product-list"), {"ClothingStore", "WebSite", "CollectionPage", "BreadcrumbList"}),
+            (
+                reverse("product-type", args=[self.category.slug]),
+                {"ClothingStore", "WebSite", "CollectionPage", "BreadcrumbList"},
+            ),
+            (
+                reverse("product-detail", args=[self.products[0].pk]),
+                {"ClothingStore", "WebSite", "Product", "BreadcrumbList"},
+            ),
+            (reverse("contact"), {"ClothingStore", "WebSite", "BreadcrumbList"}),
+        ):
+            with self.subTest(url=url):
+                parsed = _parse_seo(self.client.get(url, HTTP_HOST="durrattarim.com").content)
+                schemas = [json.loads(raw) for raw in parsed.json_lds]
+                self.assertEqual({s["@type"] for s in schemas}, expected_types)
+                if "Product" in expected_types:
+                    prod_schema = next(s for s in schemas if s["@type"] == "Product")
+                    self.assertEqual(prod_schema["brand"]["name"], "درة تريم")
+
+    def test_whatsapp_nofollow_sitemap_products_and_favicon(self):
+        detail_html = self.client.get(
+            reverse("product-detail", args=[self.products[0].pk]),
+            HTTP_HOST="durrattarim.com",
+        ).content.decode("utf-8")
+        wa_href = reverse("product-whatsapp", args=[self.products[0].pk])
+        self.assertRegex(
+            detail_html,
+            rf'<a[^>]*href="{re.escape(wa_href)}"[^>]*rel="nofollow"',
+        )
+
+        static_sitemap = self.client.get(
+            "/sitemap-static.xml", HTTP_HOST="durrattarim.com"
+        ).content.decode("utf-8")
+        self.assertIn("http://durrattarim.com/products/", static_sitemap)
+
+        favicon_resp = self.client.get("/favicon.ico", HTTP_HOST="durrattarim.com")
+        self.assertEqual(favicon_resp.status_code, 301)
+        self.assertIn("favicon.png", favicon_resp["Location"])

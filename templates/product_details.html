@@ -52,7 +52,7 @@
         </div>
 
         <!-- Editorial Garment Sheet -->
-        <div class="min-w-0 md:col-span-6 reveal">
+        <div class="min-w-0 md:col-span-6">
             {% if product.category %}
             <a
                 href="{% url 'product-type' product.category.slug %}"
@@ -93,6 +93,7 @@
             <div class="grid gap-3 sm:grid-cols-2">
                 <a
                     href="{% url 'product-whatsapp' product.pk %}"
+                    rel="nofollow"
                     class="inline-flex min-h-12 items-center justify-center gap-2.5 rounded-xl bg-whatsapp px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-whatsapp/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-whatsapp focus-visible:ring-offset-2"
                 >
                     <svg

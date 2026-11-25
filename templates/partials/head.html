@@ -1,111 +1,65 @@
-﻿{% load static %}
-<title>
-    {{ page_title|default:"درة تريم للأقمشة" }}
-    {% if product %} - {{ product.name_ar }}{% endif %}
-    {% if category %} - {{ category.name_ar }}{% endif %}
-    - درة تريم
-</title>
+﻿{% load static catalog_tags %}
+<title>{{ page_title|default:"درة تريم | قطع عرائسية وأقمشة وأزياء راقية" }}</title>
 <meta
     name="description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء والعبايات الراقية من درة تريم'|truncatechars:160 }}"
+    content="{{ meta_description|default:'درة تريم — وجهتكِ الأولى للقطع العرائسية والأقمشة الفاخرة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.'|truncatechars:160 }}"
 />
 
-<!-- Canonical URL (scheme + host + path, query string stripped, pagination: page=1 canonical) -->
-<link
-    rel="canonical"
-    href="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% if request.GET %}?page=1{% endif %}"
-/>
+<!-- Canonical URL -->
+<link rel="canonical" href="{{ canonical_url }}" />
 
 <!-- Open Graph (WhatsApp / Facebook / Messenger link previews) -->
 <meta property="og:type" content="{{ og_type|default:'website' }}" />
-<meta
-    property="og:url"
-    content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}"
-/>
+<meta property="og:url" content="{{ canonical_url }}" />
 <meta property="og:site_name" content="درة تريم" />
 <meta property="og:locale" content="ar_AR" />
 <meta
     property="og:title"
-    content="{{ page_title|default:'درة تريم للأقمشة' }}"
+    content="{{ page_title|default:'درة تريم | قطع عرائسية وأقمشة وأزياء راقية' }}"
 />
 <meta
     property="og:description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء والعبايات الراقية.'|truncatechars:160 }}"
+    content="{{ meta_description|default:'درة تريم — وجهتكِ الأولى للقطع العرائسية والأقمشة الفاخرة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.'|truncatechars:160 }}"
 />
 <meta
     property="og:image"
-    content="{% if og_image %}{{ og_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo-gold-transparent.png' %}{% endif %}"
+    content="{{ og_image|default:default_og_image_url }}"
 />
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta
     name="twitter:title"
-    content="{{ page_title|default:'درة تريم للأقمشة' }}"
+    content="{{ page_title|default:'درة تريم | قطع عرائسية وأقمشة وأزياء راقية' }}"
 />
 <meta
     name="twitter:description"
-    content="{{ meta_description|default:'تصفحي أحدث الأزياء والعبايات الراقية.'|truncatechars:160 }}"
+    content="{{ meta_description|default:'درة تريم — وجهتكِ الأولى للقطع العرائسية والأقمشة الفاخرة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.'|truncatechars:160 }}"
 />
 <meta
     name="twitter:image"
-    content="{% if og_image %}{{ og_image }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo-gold-transparent.png' %}{% endif %}"
+    content="{{ og_image|default:default_og_image_url }}"
 />
 
+{% if google_site_verification %}
 <!-- Google Search Console verification -->
 <meta
     name="google-site-verification"
-    content="Nw2fa1L4QIRwROBucFvq9n1e796Zsbk0XyTbAPx4nyw"
+    content="{{ google_site_verification }}"
 />
+{% endif %}
 
-<!-- Organization structured data (site-wide) -->
-<script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "درة تريم",
-        "url": "{{ request.scheme }}://{{ request.get_host }}",
-        "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo-gold-transparent.png' %}",
-        "contactPoint": {
-            "@type": "ContactPoint",
-            "telephone": "+{{ site_settings.whatsapp_number|default:'967783278181' }}",
-            "contactType": "customer service",
-            "areaServed": "YE"
-        },
-        "sameAs": [
-            "https://www.instagram.com/durttrim/",
-            "https://www.snapchat.com/add/durttrim",
-            "https://www.tiktok.com/@durttrim"
-        ]
-    }
-</script>
-
-<!-- WebSite structured data with SearchAction for sitelinks searchbox -->
-<script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "url": "{{ request.scheme }}://{{ request.get_host }}",
-        "name": "درة تريم",
-        "potentialAction": {
-            "@type": "SearchAction",
-            "target": {
-                "@type": "EntryPoint",
-                "urlTemplate": "{{ request.scheme }}://{{ request.get_host }}{% url 'product-search' %}?q={search_term_string}"
-            },
-            "query-input": "required name=search_term_string"
-        }
-    }
-</script>
+{% store_json_ld %}
 
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="icon" type="image/png" href="{% static 'images/logo-gold-transparent.png' %}" />
+<link rel="icon" type="image/png" sizes="64x64" href="{% static 'images/favicon.png' %}" />
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}" />
 
 <meta name="theme-color" content="{{ site_settings.light_color_background|default:'#f7f3fa' }}" />
 
-<!-- Robots meta (views can set robots_content, e.g. search results = noindex) -->
-<meta name="robots" content="{{ robots_content|default:'index,follow' }}" />
+<!-- Robots meta -->
+<meta name="robots" content="{% if seo_noindex_host %}noindex,nofollow{% else %}{{ robots_content|default:'index,follow' }}{% endif %}" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

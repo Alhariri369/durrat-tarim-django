@@ -1,5 +1,6 @@
 import decimal
 import io
+import tempfile
 from datetime import timedelta
 from urllib.parse import parse_qs, urlparse
 
@@ -7,7 +8,7 @@ from allauth.account.models import EmailAddress
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import IntegrityError, transaction
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -34,12 +35,48 @@ def _fake_image(name="test.jpg", width=100, height=100):
     )
 
 
+class _LocalMediaTestCase(TestCase):
+    """Redirect default media storage to a temp directory so catalog tests
+    never touch live ImageKit or write into uploads/."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls._temp_media = tempfile.TemporaryDirectory()
+        cls._storage_override = override_settings(
+            MEDIA_ROOT=cls._temp_media.name,
+            STORAGES={
+                "default": {
+                    "BACKEND": "django.core.files.storage.FileSystemStorage",
+                    "OPTIONS": {"location": cls._temp_media.name},
+                },
+                "staticfiles": {
+                    "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+                },
+            },
+        )
+        cls._storage_override.enable()
+        try:
+            super().setUpClass()
+        except Exception:
+            cls._storage_override.disable()
+            cls._temp_media.cleanup()
+            raise
+
+    @classmethod
+    def tearDownClass(cls):
+        try:
+            super().tearDownClass()
+        finally:
+            cls._storage_override.disable()
+            cls._temp_media.cleanup()
+
+
 # ---------------------------------------------------------------------------
 # Model tests
 # ---------------------------------------------------------------------------
 
 
-class CategoryModelTests(TestCase):
+class CategoryModelTests(_LocalMediaTestCase):
     def test_requires_name_ar_and_image(self):
         cat = Category(name_ar="عبايات", slug="abayat", image=_fake_image())
         cat.full_clean()
@@ -54,7 +91,7 @@ class CategoryModelTests(TestCase):
         self.assertEqual(cat.name_en, "")
 
 
-class ProductModelTests(TestCase):
+class ProductModelTests(_LocalMediaTestCase):
     def setUp(self):
         self.category = Category.objects.create(
             name_ar="عبايات", slug="abayat", image=_fake_image()
@@ -98,7 +135,7 @@ class ProductModelTests(TestCase):
             prod.full_clean()
 
 
-class FeaturedProductModelTests(TestCase):
+class FeaturedProductModelTests(_LocalMediaTestCase):
     def setUp(self):
         self.category = Category.objects.create(
             name_ar="عبايات", slug="abayat", image=_fake_image()
@@ -231,7 +268,7 @@ class ImageValidationTests(TestCase):
 # ---------------------------------------------------------------------------
 
 
-class CatalogViewsTests(TestCase):
+class CatalogViewsTests(_LocalMediaTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.category = Category.objects.create(
@@ -276,7 +313,7 @@ class StoreSettingsContextTests(TestCase):
         self.assertIn("is_store_authenticated", response.context)
 
 
-class StorefrontMilestoneTests(TestCase):
+class StorefrontMilestoneTests(_LocalMediaTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.category = Category.objects.create(
@@ -415,7 +452,7 @@ class StorefrontMilestoneTests(TestCase):
         self.assertEqual(received, [self.new_product.pk])
 
 
-class FavoriteMilestoneTests(TestCase):
+class FavoriteMilestoneTests(_LocalMediaTestCase):
     password = "Zebra-Planet-8462"
 
     @classmethod

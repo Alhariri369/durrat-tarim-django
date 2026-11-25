@@ -373,15 +373,18 @@ External validators:
 
 ## 8. Production considerations
 
-### 8.1 Production domain is not finalized
+### 8.1 Production domain (`durrattarim.com`) & Staging Noindex Gate
 
-The SEO code is deliberately host-relative, but the hosting configuration is not yet production-complete:
+- `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` now include `durrattarim.com` and `www.durrattarim.com` alongside `.vercel.app`.
+- `SeoHeadersMiddleware` (`durrat_tarim/middleware.py`) automatically emits `X-Robots-Tag: noindex, nofollow` and `robots_txt` serves `Disallow: /` whenever a request arrives on `*.vercel.app` (unless `ALLOW_VERCEL_APP_INDEXING=True`), preventing staging/preview URLs from competing with `durrattarim.com`.
 
-- `ALLOWED_HOSTS = [".vercel.app", "127.0.0.1", "localhost"]` — a custom production domain must be added before it can serve requests.
-- `CSRF_TRUSTED_ORIGINS` already lists `https://durrat-tarim.com` and `https://www.durrat-tarim.com`, which suggests the intended domain, but this is not reflected in `ALLOWED_HOSTS`.
-- Until the domain is fixed, canonical/sitemap/robots URLs will follow whatever host the request used (preview URL vs. custom domain). Make sure Search Console is pointed at the final host and that preview deployments are not indexed.
+### 8.4 Resolved Follow-ups & Current Architecture
 
-`django.contrib.sites` / `SITE_ID` are intentionally **not** used for sitemap absolute URLs, so no `Site` row update is required when the domain changes.
+- **Title duplication fixed:** `templates/partials/head.html` now renders `{{ page_title }}` directly without appending duplicate product/category/brand suffixes.
+- **Pagination canonical fixed:** `durrat_tarim/context_processors.py` strips tracking params (`utm_*`, `fbclid`), collapses `?page=1` to the clean path, and preserves `?page=2+` on `/products/` and `/products/types/<slug>/`.
+- **Indexable `/products/` catalog & targeted `robots.txt`:** Added `/products/` (`product-list`) in `StaticViewSitemap`, moved nav links off `/products/search/`, and replaced `Disallow: /*?*` with targeted `/products/search/`, `/*?q=*`, `/*?product_desc=*`, and `/products/items/*/whatsapp/` rules.
+- **Local SEO (`ClothingStore` + `FAQPage`) & Favicons:** Replaced `Organization` with `ClothingStore` targeting **تريم، سيئون، وادي حضرموت، واليمن** (`سوق الفتح، تريم`), added `FAQPage` JSON-LD on Home, generated `favicon.png`, `apple-touch-icon.png`, and `og-default.jpg`, and moved `GOOGLE_SITE_VERIFICATION` to an env-backed setting.
+- **Automated SEO tests:** `durrat_tarim/tests.py` (`SeoMetadataAndSchemaTests`) validates titles, canonicals, `.vercel.app` noindex headers, JSON-LD parsing, `<h1>` uniqueness, and `rel="nofollow"` links.
 
 ### 8.2 Database: SQLite locally, PostgreSQL/Supabase remotely
 

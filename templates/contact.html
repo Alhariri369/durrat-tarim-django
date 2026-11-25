@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %} {% load catalog_tags %} {% block content %}
+{% if breadcrumbs %}{% breadcrumb_json_ld breadcrumbs %}{% endif %}
 <section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
     <!-- Editorial Header -->
     <div class="mb-10 border-b border-secondary/10 pb-6 reveal">

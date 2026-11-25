@@ -24,6 +24,58 @@ from .whatsapp import (
 PRODUCTS_PER_PAGE = 12
 LATEST_PRODUCTS_LIMIT = 8
 
+HOME_FAQS = [
+    {
+        "question": "كيف يمكنني طلب منتج؟",
+        "answer": (
+            'يمكنكِ تصفح المنتجات والضغط على زر "استفسار واتساب" لأي منتج '
+            "يعجبكِ، وسيتم توجيهكِ مباشرة إلى محادثة واتساب برسالة جاهزة "
+            "تحتوي على تفاصيل القطعة لتأكيد طلبكِ بسرعة."
+        ),
+    },
+    {
+        "question": "هل يتوفر التوصيل داخل تريم وسيئون ووادي حضرموت واليمن؟",
+        "answer": (
+            "نعم، نوفر خدمة التوصيل في تريم وسيئون ومختلف مناطق وادي حضرموت، "
+            "مع إمكانية الشحن إلى بقية محافظات اليمن بالتنسيق المباشر عبر واتساب."
+        ),
+    },
+    {
+        "question": "ما هي طرق الدفع المتاحة؟",
+        "answer": (
+            "نقبل الدفع في المحل والتحويل البنكي أو عبر شركات الصرافة المعتمدة. "
+            "سيتم توضيح كافة خيارات الدفع المتاحة عند تأكيد طلبكِ عبر واتساب."
+        ),
+    },
+    {
+        "question": "هل يمكنني إرجاع أو استبدال المنتج؟",
+        "answer": (
+            "نعم، نوفر سياسة إرجاع خلال يوم واحد واستبدال خلال 3 أيام من استلام "
+            "المنتج، بشرط أن يكون بحالته الأصلية. يرجى التواصل معنا عبر واتساب "
+            "لترتيب عملية الإرجاع أو الاستبدال."
+        ),
+    },
+    {
+        "question": "كيف أضيف منتجات إلى المفضلة؟",
+        "answer": (
+            "يمكنكِ إنشاء حساب وتوثيق بريدكِ الإلكتروني، ثم الضغط على أيقونة القلب "
+            "في أي منتج لحفظه. بعدها يمكنكِ تحديد عدة منتجات من صفحة المفضلة "
+            "وإرسالها في استفسار واحد عبر واتساب."
+        ),
+    },
+]
+
+
+def _og_image_for(request, image_field) -> str:
+    """Return an absolute Open Graph image URL, applying ImageKit 1200x630
+    JPG transform when hosted on ik.imagekit.io."""
+    if not image_field:
+        return ""
+    url = request.build_absolute_uri(image_field.url)
+    if "ik.imagekit.io" in url and "?" not in url:
+        return f"{url}?tr=w-1200,h-630,fo-auto,f-jpg,q-85"
+    return url
+
 _ACTIVE_CATEGORY_TREE_SQL = """
 products.category_id IN (
     WITH RECURSIVE active_categories(id) AS (
@@ -192,12 +244,46 @@ def home(request):
             "products": products,
             "categories": categories,
             "featured": featured,
-            "page_title": "درة تريم | أزياء وعبايات",
+            "faqs": HOME_FAQS,
+            "page_title": "درة تريم | قطع عرائسية وأقمشة وأزياء راقية في تريم وحضرموت",
+            "meta_description": (
+                "درة تريم — وجهتكِ الأولى للقطع العرائسية والأقمشة الفاخرة والأزياء الراقية "
+                "في تريم وسيئون ووادي حضرموت واليمن. تصفحي أحدث التشكيلات واطلبي عبر واتساب."
+            ),
             "hero": (
                 "catalog/partials/featured_slider.html"
                 if featured
                 else "catalog/partials/empty_hero.html"
             ),
+        },
+    )
+
+
+def all_products(request):
+    """Indexable public catalog listing (/products/) with pagination."""
+    products = _public_products(request.user).order_by("-created_at", "-id")
+    page_obj, pagination_query = _paginate(request, products)
+    page_suffix = f" - صفحة {page_obj.number}" if page_obj.number > 1 else ""
+    return render(
+        request,
+        "search.html",
+        {
+            "is_catalog_index": True,
+            "products": page_obj.object_list,
+            "page_obj": page_obj,
+            "pagination_query": pagination_query,
+            "query": "",
+            "empty_message": "لا توجد منتجات متاحة حالياً.",
+            "search_heading": "جميع المنتجات",
+            "page_title": f"جميع المنتجات{page_suffix} | درة تريم",
+            "meta_description": (
+                "تصفحي جميع القطع العرائسية والأقمشة والأزياء الراقية المتوفرة في درة تريم "
+                "بوادي حضرموت واليمن مع الأسعار بالريال السعودي واليمني."
+            ),
+            "breadcrumbs": [
+                ("الرئيسية", "/"),
+                ("جميع المنتجات", reverse("product-list")),
+            ],
         },
     )
 
@@ -218,31 +304,33 @@ def search_products(request):
     page_obj, pagination_query = _paginate(
         request, products.order_by("-created_at", "-id")
     )
-    return render(
-        request,
-        "search.html",
-        {
-            "products": page_obj.object_list,
-            "page_obj": page_obj,
-            "pagination_query": pagination_query,
-            "query": raw_query,
-            "empty_message": "لم نجد منتجات مطابقة لبحثك.",
-            "search_heading": (
-                f"نتائج البحث عن «{raw_query}»" if raw_query else "جميع المنتجات"
-            ),
-            "page_title": (
-                f"نتائج البحث عن {raw_query} | درة تريم"
-                if raw_query
-                else "جميع المنتجات | درة تريم"
-            ),
-            "meta_description": "ابحثي في منتجات درة تريم وتصفحي الأسعار بالريال السعودي واليمني.",
-            "robots_content": "noindex,follow",
-            "breadcrumbs": [
-                ("الرئيسية", "/"),
-                ("البحث", reverse("product-search")),
-            ],
-        },
-    )
+    context = {
+        "products": page_obj.object_list,
+        "page_obj": page_obj,
+        "pagination_query": pagination_query,
+        "query": raw_query,
+        "empty_message": "لم نجد منتجات مطابقة لبحثك.",
+        "search_heading": (
+            f"نتائج البحث عن «{raw_query}»" if raw_query else "جميع المنتجات"
+        ),
+        "page_title": (
+            f"نتائج البحث عن {raw_query} | درة تريم"
+            if raw_query
+            else "البحث في المنتجات | درة تريم"
+        ),
+        "meta_description": (
+            "ابحثي في منتجات درة تريم من القطع العرائسية والأقمشة والأزياء الراقية "
+            "وتصفحي الأسعار بالريال السعودي واليمني."
+        ),
+        "robots_content": "noindex,follow",
+        "breadcrumbs": [
+            ("الرئيسية", "/"),
+            ("البحث", reverse("product-search")),
+        ],
+    }
+    if not raw_query:
+        context["canonical_url"] = request.build_absolute_uri(reverse("product-list"))
+    return render(request, "search.html", context)
 
 
 def get_all_types(request):
@@ -257,7 +345,10 @@ def get_all_types(request):
         {
             "categories": categories,
             "page_title": "التصنيفات | درة تريم",
-            "meta_description": "تصفحي تصنيفات الأزياء والعبايات في درة تريم.",
+            "meta_description": (
+                "تصفحي تصنيفات القطع العرائسية والأقمشة والأزياء الراقية في درة تريم "
+                "بتريم وسيئون ووادي حضرموت واليمن."
+            ),
             "breadcrumbs": [
                 ("الرئيسية", "/"),
                 ("التصنيفات", reverse("product-types")),
@@ -292,7 +383,8 @@ def get_type_products(request, type_name):
         page_obj = None
         pagination_query = ""
         meta_description = (
-            f"تصفحي التصنيفات الفرعية في {category.name_ar} من درة تريم."
+            f"تصفحي الأقسام الفرعية في {category.name_ar} من درة تريم — "
+            "قطع عرائسية وأقمشة وأزياء راقية في وادي حضرموت واليمن."
         )
     else:
         subcategories = []
@@ -303,8 +395,14 @@ def get_type_products(request, type_name):
             request, products_qs.order_by("-created_at", "-id")
         )
         products = page_obj.object_list
-        meta_description = f"تصفحي منتجات {category.name_ar} من درة تريم."
+        meta_description = (
+            f"تصفحي تشكيلة {category.name_ar} من درة تريم في تريم وسيئون ووادي حضرموت "
+            "والأسعار بالريال السعودي واليمني."
+        )
 
+    page_suffix = (
+        f" - صفحة {page_obj.number}" if page_obj and page_obj.number > 1 else ""
+    )
     return render(
         request,
         "type_products.html",
@@ -316,8 +414,9 @@ def get_type_products(request, type_name):
             "pagination_query": pagination_query,
             "category": category,
             "empty_message": "لا توجد منتجات متاحة في هذا التصنيف حاليا.",
-            "page_title": f"{category.name_ar} | درة تريم",
+            "page_title": f"{category.name_ar}{page_suffix} | درة تريم",
             "meta_description": meta_description,
+            "og_image": _og_image_for(request, category.image),
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -336,16 +435,20 @@ def product_details(request, pk):
         ]
         + [(product.name_ar, reverse("product-detail", args=[product.pk]))]
     )
+    fallback_desc = (
+        f"{product.name_ar} من درة تريم — اطلبي عبر واتساب مع التوصيل في تريم وسيئون "
+        "ووادي حضرموت وكافة مناطق اليمن."
+    )
     return render(
         request,
         "product_details.html",
         {
             "product": product,
             "page_title": f"{product.name_ar} | درة تريم",
-            "meta_description": (product.description_ar or product.name_ar)[:150],
+            "meta_description": (product.description_ar or fallback_desc)[:160],
             # Product-specific Open Graph data for social share previews.
             "og_type": "product",
-            "og_image": product.image.url if product.image else "",
+            "og_image": _og_image_for(request, product.image),
             "breadcrumbs": breadcrumbs,
         },
     )
@@ -411,6 +514,7 @@ def favorites(request):
             "hide_favorite": True,
             "page_title": "المفضلة | درة تريم",
             "meta_description": "منتجاتك المفضلة في درة تريم.",
+            "robots_content": "noindex,nofollow",
         },
     )
 

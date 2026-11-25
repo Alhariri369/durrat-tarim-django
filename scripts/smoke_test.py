@@ -14,11 +14,13 @@ DEFAULT_TIMEOUT = 15.0
 
 SMOKE_ENDPOINTS = (
     "/",
+    "/products/",
     "/products/types/",
     "/products/search/",
     "/contact/",
     "/admin/login/",
     "/sitemap.xml",
+    "/robots.txt",
     "/static/css/output.css",
     "/static/images/product-placeholder.svg",
 )
