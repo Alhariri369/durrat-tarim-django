@@ -16,12 +16,22 @@ ALLOWED_HOSTS = [
     ".durrattarim.com",
     "durrattarim.com",
     "www.durrattarim.com",
+    "dev.durrattarim.com",
     ".durrat-tarim.com",
     "durrat-tarim.com",
     "www.durrat-tarim.com",
     "127.0.0.1",
     "localhost",
 ]
+
+CANONICAL_DOMAIN = os.getenv("CANONICAL_DOMAIN", "durrattarim.com")
+ALLOW_VERCEL_APP_INDEXING = (
+    os.getenv("ALLOW_VERCEL_APP_INDEXING", "False") == "True"
+)
+GOOGLE_SITE_VERIFICATION = os.getenv(
+    "GOOGLE_SITE_VERIFICATION",
+    "Nw2fa1L4QIRwROBucFvq9n1e796Zsbk0XyTbAPx4nyw",
+)
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -51,6 +61,7 @@ AUTHENTICATION_BACKENDS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "durrat_tarim.middleware.SeoHeadersMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -194,6 +205,7 @@ SOCIALACCOUNT_PROVIDERS = {
     "google": {
         "SCOPE": ["profile", "email"],
         "AUTH_PARAMS": {"access_type": "online"},
+        "VERIFIED_EMAIL": True,
     }
 }
 if _google_apps:
@@ -204,24 +216,28 @@ SOCIALACCOUNT_LOGIN_ON_GET = True
 # Log into an existing account when the Google email already matches one
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# Trust Google-verified emails without redundant confirmation prompts;
+# site-created email+password accounts remain mandatory via ACCOUNT_EMAIL_VERIFICATION.
+SOCIALACCOUNT_EMAIL_VERIFICATION = "none"
 
 # Vercel terminates TLS at the proxy — detect https from the forwarded header
 if os.getenv("VERCEL"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     USE_X_FORWARDED_HOST = True
-    
+
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = os.getenv("DJANGO_SECURE_SSL_REDIRECT", "True") == "True"
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-    
+
 CSRF_TRUSTED_ORIGINS = [
     "https://*.vercel.app",
     "https://durrattarim.com",
     "https://www.durrattarim.com",
+    "https://dev.durrattarim.com",
     "https://*.durrattarim.com",
     "https://durrat-tarim.com",
     "https://www.durrat-tarim.com",
@@ -256,7 +272,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-WHITENOISE_USE_FINDERS = DEBUG
+# Allow WhiteNoise to serve directly from STATICFILES_DIRS & app static dirs
+# on Vercel (where legacy vercel.json `builds` skips collectstatic).
+WHITENOISE_USE_FINDERS = True
 
 # AWS_QUERYSTRING_AUTH = False  # no signed URLs — bucket must be public
 
@@ -276,3 +294,22 @@ ACCOUNT_LOGOUT_REDIRECT_URL = "/"
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = False
+
+
+def _build_caches(redis_url: str) -> dict:
+    if redis_url:
+        return {
+            "default": {
+                "BACKEND": "django.core.cache.backends.redis.RedisCache",
+                "LOCATION": redis_url,
+            }
+        }
+    return {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
+
+
+REDIS_URL = os.getenv("REDIS_URL", "").strip()
+CACHES = _build_caches(REDIS_URL)

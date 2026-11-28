@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="gradient-hero flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 py-12">
+    <div class="w-full max-w-md">
+        <div class="glass-card p-7 text-center sm:p-9">
+            <div class="mb-6">
+                <span
+                    class="mx-auto mb-4 flex h-13 w-13 items-center justify-center rounded-xl border border-primary/20 bg-primary/8 text-primary"
+                    aria-hidden="true"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </span>
+                <h1 class="font-display text-2xl font-bold text-secondary sm:text-3xl">
+                    التحقق من البريد الإلكتروني
+                </h1>
+                <p class="mt-3 text-sm leading-relaxed text-secondary/75">
+                    لقد أرسلنا رابط تفعيل إلى بريدكِ الإلكتروني. يرجى فتح الرسالة والضغط على الرابط لإكمال تفعيل حسابكِ.
+                </p>
+                <p class="mt-2 text-xs text-secondary/60">
+                    إذا لم تجدي الرسالة في صندوق الوارد، تحققي من مجلد الرسائل غير المرغوب فيها (Spam).
+                </p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <a
+                    href="{% url 'account_login' %}"
+                    class="inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-bold text-surface transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                    العودة لتسجيل الدخول
+                </a>
+                <a
+                    href="{% url 'home' %}"
+                    class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-secondary/18 bg-surface px-6 py-2.5 text-sm font-bold text-secondary transition-colors hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                >
+                    العودة للرئيسية
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

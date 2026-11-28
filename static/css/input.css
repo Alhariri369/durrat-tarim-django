@@ -1,26 +1,75 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 
-@source "../../templates/**/*.html";
+@source "../../templates";
+@source "../../static/js";
+@source "../../support";
 
-@theme {
-    --font-tajawal: "Tajawal", "sans-serif";
-    --font-cairo: "Cairo", "sans-serif";
-    --font-messiri: "El Messiri", "sans-serif";
+@theme static {
+    /* --- Font tokens --- */
+    --font-tajawal: "Tajawal", system-ui, -apple-system, sans-serif;
+    --font-cairo: "Cairo", system-ui, sans-serif;
+    --font-el-messiri: "El Messiri", "Tajawal", Georgia, serif;
+    --font-display: "El Messiri", "Tajawal", Georgia, serif;
 
-    /* Default fallback colors — overridden by CSS variables at runtime */
-    --color-primary: #30669c;
-    --color-secondary: #08121b;
-    --color-accent: #e0801f;
-    --color-background: #f6f1ee;
+    /* --- Core Color Tokens — Direct Mapping to StoreSettings --- */
+    --color-primary: #6b4c8c;
+    --color-secondary: #1f1629;
+    --color-accent: #a974c4;
+    --color-background: #f7f3fa;
     --color-surface: #ffffff;
 
-    /* Rose palette for favorites */
+    /* --- Brand Gold Accent (harmonized with logo-gold-transparent.png) --- */
+    --color-gold: #b88928;
+    --color-gold-soft: #f6efe0;
+
+    /* --- Semantic Aliases --- */
+    --color-text: var(--color-secondary);
+    --color-text-muted: var(--color-secondary);
+    --color-border: color-mix(in srgb, var(--color-secondary) 12%, transparent);
+    --color-border-strong: var(--color-secondary);
+    --color-focus: var(--color-primary);
+    --color-focus-ring: var(--color-primary);
+    --color-overlay: color-mix(in srgb, var(--color-background) 80%, black);
+
+    /* --- Status colors --- */
+    --color-success: #059669;
+    --color-warning: #d97706;
+    --color-error: #dc2626;
+    --color-info: #2563eb;
+
+    /* --- Social brand tokens --- */
+    --color-whatsapp: #1fa855;
+    --color-instagram: #e1306c;
+    --color-instagram-start: #f58529;
+    --color-instagram-mid: #dd2a7b;
+    --color-instagram-end: #8134af;
+    --color-tiktok: #111111;
+
+    /* --- Rose palette --- */
     --color-rose-50: #fff1f2;
     --color-rose-100: #ffe4e6;
-    --color-rose-150: #fecdd3;
     --color-rose-200: #fecdd3;
     --color-rose-300: #fda4af;
     --color-rose-400: #fb7185;
     --color-rose-500: #f43f5e;
     --color-rose-600: #e11d48;
+    --color-rose-700: #be123c;
+    --color-rose-800: #9f1239;
+    --color-rose-900: #881337;
+    --color-rose-950: #4c0519;
+}
+
+@utility bg-instagram-gradient {
+    background-image: linear-gradient(
+        135deg,
+        var(--color-instagram-start) 0%,
+        var(--color-instagram-mid) 50%,
+        var(--color-instagram-end) 100%
+    );
+}
+
+@utility atelier-card {
+    background-color: var(--color-surface);
+    border: 1px solid color-mix(in srgb, var(--color-secondary) 10%, transparent);
+    border-radius: 0.875rem;
 }

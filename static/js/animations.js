@@ -1,17 +1,20 @@
 /**
- * Durrat Tarim – Premium Scroll Reveal & Interactions
+ * Durrat Tarim – Editorial UI Interactions & Accessibility Helpers
  */
 (() => {
   'use strict';
 
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
   /* ============================================================
      Scroll Reveal (Intersection Observer)
      ============================================================ */
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-
   function initScrollReveal() {
-    if (prefersReducedMotion.matches) {
-      document.querySelectorAll('.reveal').forEach(el => el.classList.add('revealed'));
+    const items = document.querySelectorAll('.reveal');
+    if (!items.length) return;
+
+    if (prefersReducedMotion.matches || !('IntersectionObserver' in window)) {
+      items.forEach(el => el.classList.add('revealed'));
       return;
     }
 
@@ -25,91 +28,12 @@
         });
       },
       {
-        threshold: 0.12,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.08,
+        rootMargin: '0px 0px -24px 0px',
       }
     );
 
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-    return observer;
-  }
-
-  /* ============================================================
-     Counter Animation
-     ============================================================ */
-  function animateCounters() {
-    if (prefersReducedMotion.matches) return;
-    const counters = document.querySelectorAll('[data-counter]');
-    if (!counters.length) return;
-
-    const counterObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach(entry => {
-          if (!entry.isIntersecting) return;
-          const el = entry.target;
-          const target = parseInt(el.dataset.counter, 10);
-          const duration = parseInt(el.dataset.duration, 10) || 2000;
-          const suffix = el.dataset.suffix || '';
-          const start = performance.now();
-
-          function update(now) {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
-            // Ease-out expo
-            const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-            const current = Math.floor(target * eased);
-            el.textContent = current.toLocaleString('ar-EG') + suffix;
-            if (progress < 1) {
-              requestAnimationFrame(update);
-            }
-          }
-          requestAnimationFrame(update);
-          counterObserver.unobserve(el);
-        });
-      },
-      { threshold: 0.6 }
-    );
-
-    counters.forEach(el => counterObserver.observe(el));
-  }
-
-  /* ============================================================
-     Smooth Scroll for Anchor Links
-     ============================================================ */
-  function initSmoothScroll() {
-    document.addEventListener('click', (e) => {
-      const link = e.target.closest('a[href^="#"]');
-      if (!link) return;
-      const target = document.querySelector(link.getAttribute('href'));
-      if (!target) return;
-      e.preventDefault();
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }
-
-  /* ============================================================
-     Parallax Tilt on Hover
-     ============================================================ */
-  function initTilt() {
-    if (prefersReducedMotion.matches) return;
-    const cards = document.querySelectorAll('[data-tilt]');
-
-    cards.forEach(card => {
-      card.addEventListener('mousemove', (e) => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -8;
-        const rotateY = ((x - centerX) / centerX) * 8;
-        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-      });
-
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
-      });
-    });
+    items.forEach(el => observer.observe(el));
   }
 
   /* ============================================================
@@ -117,60 +41,75 @@
      ============================================================ */
   function highlightActiveNav() {
     const currentPath = window.location.pathname;
-    const navLinks = document.querySelectorAll('[data-nav-link]');
-    navLinks.forEach(link => {
+    document.querySelectorAll('[data-nav-link]').forEach(link => {
       const href = link.getAttribute('href');
       if (href === currentPath || (href !== '/' && currentPath.startsWith(href))) {
-        link.classList.add('text-accent', 'bg-accent/5');
+        link.classList.add('text-primary', 'bg-primary/8');
+        link.classList.remove('text-secondary/80');
+        link.setAttribute('aria-current', 'page');
       }
     });
   }
 
   /* ============================================================
-     WhatsApp Floating Button Pulse
+     WhatsApp Floating Concierge Button
      ============================================================ */
   function initWhatsAppFloat() {
     const btn = document.querySelector('[data-whatsapp-float]');
     if (!btn) return;
-    // Show after scroll
-    let shown = false;
-    window.addEventListener('scroll', () => {
-      if (!shown && window.scrollY > 400) {
-        btn.classList.remove('translate-y-24', 'opacity-0');
+
+    const syncVisibility = () => {
+      if (window.scrollY > 280) {
+        btn.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
         btn.classList.add('translate-y-0', 'opacity-100');
-        shown = true;
+      } else {
+        btn.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+        btn.classList.remove('translate-y-0', 'opacity-100');
       }
-    }, { passive: true });
+    };
+
+    syncVisibility();
+    window.addEventListener('scroll', syncVisibility, { passive: true });
   }
 
   /* ============================================================
-     Mobile Menu Toggle
+     Mobile Menu Drawer (with Escape & Icon State)
      ============================================================ */
   function initMobileMenu() {
     const toggle = document.querySelector('[data-mobile-toggle]');
     const menu = document.querySelector('[data-mobile-menu]');
     if (!toggle || !menu) return;
 
+    const openIcon = toggle.querySelector('[data-icon-open]');
+    const closeIcon = toggle.querySelector('[data-icon-close]');
+
+    const setMenuOpen = (open, restoreFocus = false) => {
+      menu.classList.toggle('hidden', !open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'إغلاق القائمة' : 'فتح القائمة');
+      document.body.classList.toggle('overflow-hidden', open);
+      if (openIcon && closeIcon) {
+        openIcon.classList.toggle('hidden', open);
+        closeIcon.classList.toggle('hidden', !open);
+      }
+      if (!open && restoreFocus) {
+        toggle.focus();
+      }
+    };
+
     toggle.addEventListener('click', () => {
       const isOpen = !menu.classList.contains('hidden');
-      if (isOpen) {
-        menu.classList.add('hidden');
-        toggle.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('overflow-hidden');
-      } else {
-        menu.classList.remove('hidden');
-        toggle.setAttribute('aria-expanded', 'true');
-        document.body.classList.add('overflow-hidden');
-      }
+      setMenuOpen(!isOpen);
     });
 
-    // Close on link click
     menu.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => {
-        menu.classList.add('hidden');
-        toggle.setAttribute('aria-expanded', 'false');
-        document.body.classList.remove('overflow-hidden');
-      });
+      link.addEventListener('click', () => setMenuOpen(false));
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !menu.classList.contains('hidden')) {
+        setMenuOpen(false, true);
+      }
     });
   }
 
@@ -178,67 +117,123 @@
      FAQ Accordion
      ============================================================ */
   function initFAQ() {
-    document.querySelectorAll('[data-faq-toggle]').forEach(button => {
+    const toggles = document.querySelectorAll('[data-faq-toggle]');
+    if (!toggles.length) return;
+
+    toggles.forEach(button => {
       button.addEventListener('click', () => {
-        const content = button.nextElementSibling;
+        const panelId = button.getAttribute('aria-controls');
+        const content = panelId ? document.getElementById(panelId) : button.nextElementSibling;
+        if (!content) return;
+
         const isOpen = button.getAttribute('aria-expanded') === 'true';
 
-        // Close all others
-        document.querySelectorAll('[data-faq-toggle]').forEach(other => {
+        toggles.forEach(other => {
           if (other !== button) {
+            const otherId = other.getAttribute('aria-controls');
+            const otherPanel = otherId ? document.getElementById(otherId) : other.nextElementSibling;
+            const otherIcon = other.querySelector('[data-faq-icon]');
             other.setAttribute('aria-expanded', 'false');
-            other.querySelector('[data-faq-icon]').style.transform = 'rotate(0deg)';
-            other.nextElementSibling.style.maxHeight = '0';
+            if (otherIcon) otherIcon.classList.remove('rotate-180');
+            if (otherPanel) otherPanel.hidden = true;
           }
         });
 
-        if (isOpen) {
-          button.setAttribute('aria-expanded', 'false');
-          button.querySelector('[data-faq-icon]').style.transform = 'rotate(0deg)';
-          content.style.maxHeight = '0';
-        } else {
-          button.setAttribute('aria-expanded', 'true');
-          button.querySelector('[data-faq-icon]').style.transform = 'rotate(45deg)';
-          content.style.maxHeight = content.scrollHeight + 'px';
-        }
+        button.setAttribute('aria-expanded', String(!isOpen));
+        const icon = button.querySelector('[data-faq-icon]');
+        if (icon) icon.classList.toggle('rotate-180', !isOpen);
+        content.hidden = isOpen;
       });
     });
   }
 
   /* ============================================================
-     Header Shrink on Scroll
+     Header Elevation on Scroll
      ============================================================ */
-  function initHeaderShrink() {
+  function initHeaderElevation() {
     const header = document.querySelector('[data-header]');
     if (!header) return;
-    let lastScroll = 0;
 
-    window.addEventListener('scroll', () => {
-      const currentScroll = window.scrollY;
-      if (currentScroll > 80) {
-        header.classList.add('shadow-lg', 'py-2');
-        header.classList.remove('py-4');
+    const update = () => {
+      if (window.scrollY > 24) {
+        header.classList.add('shadow-sm');
       } else {
-        header.classList.remove('shadow-lg', 'py-2');
-        header.classList.add('py-4');
+        header.classList.remove('shadow-sm');
       }
-      lastScroll = currentScroll;
-    }, { passive: true });
+    };
+
+    update();
+    window.addEventListener('scroll', update, { passive: true });
   }
 
   /* ============================================================
-     Initialize Everything
+     Form Ergonomics: Error Focus & In-Flight Submit Spinner
      ============================================================ */
+  function initFormEnhancements() {
+    // 1. Wire aria-invalid / aria-describedby for server-rendered field errors & focus first invalid field
+    let firstInvalid = document.querySelector('[aria-invalid="true"]');
+
+    document.querySelectorAll('[data-field-group]').forEach(group => {
+      const errorEl = group.querySelector('[data-field-error]');
+      const input = group.querySelector('input, textarea, select');
+      if (errorEl && input) {
+        input.setAttribute('aria-invalid', 'true');
+        if (errorEl.id) {
+          input.setAttribute('aria-describedby', errorEl.id);
+        }
+        input.classList.add('border-red-500');
+        if (!firstInvalid) {
+          firstInvalid = input;
+        }
+      }
+    });
+
+    if (firstInvalid && typeof firstInvalid.focus === 'function') {
+      firstInvalid.focus({ preventScroll: false });
+    }
+
+    // 2. Prevent double-submit on POST forms while preserving button width & label
+    document.querySelectorAll('form[method="post"], form[method="POST"]').forEach(form => {
+      form.addEventListener('submit', (event) => {
+        if (form.dataset.submitting === 'true') {
+          event.preventDefault();
+          return;
+        }
+        if (typeof form.checkValidity === 'function' && !form.checkValidity()) {
+          return;
+        }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        if (!submitBtn) return;
+
+        form.dataset.submitting = 'true';
+        const rect = submitBtn.getBoundingClientRect();
+        if (rect.width > 0) {
+          submitBtn.style.minWidth = `${Math.ceil(rect.width)}px`;
+        }
+        submitBtn.disabled = true;
+        submitBtn.setAttribute('aria-busy', 'true');
+        submitBtn.classList.add('opacity-80', 'cursor-wait');
+
+        if (!submitBtn.hasAttribute('data-icon-only') && !submitBtn.querySelector('[data-submit-spinner]')) {
+          const spinner = document.createElement('span');
+          spinner.setAttribute('data-submit-spinner', '');
+          spinner.setAttribute('aria-hidden', 'true');
+          spinner.className = 'ms-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent align-middle';
+          submitBtn.appendChild(spinner);
+        }
+      });
+    });
+  }
+
   function init() {
     initScrollReveal();
-    animateCounters();
-    initSmoothScroll();
-    initTilt();
     highlightActiveNav();
     initWhatsAppFloat();
     initMobileMenu();
     initFAQ();
-    initHeaderShrink();
+    initHeaderElevation();
+    initFormEnhancements();
   }
 
   if (document.readyState === 'loading') {

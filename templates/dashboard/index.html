@@ -1,108 +1,163 @@
 {% extends "base.html" %} {% block content %}
-
-<div
-    class="flex items-center justify-between mb-8 border-b border-accent/20 pb-4"
->
-    <h1 class="text-2xl font-bold text-primary">لوحة التحكم</h1>
-</div>
-
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-sm font-bold text-secondary/60 mb-2">
-            إجمالي المنتجات
-        </h3>
-        <p class="text-3xl font-black text-primary">{{ total_products }}</p>
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
+    <!-- Header -->
+    <div
+        class="mb-8 flex flex-wrap items-end justify-between gap-4 border-b border-secondary/10 pb-6"
+    >
+        <div>
+            <p class="mb-2 flex items-center gap-2.5 text-xs font-bold tracking-wide text-primary">
+                <span class="h-px w-6 bg-gold" aria-hidden="true"></span>
+                <span>إدارة المتجر</span>
+            </p>
+            <h1 class="font-display text-3xl font-bold text-secondary">لوحة التحكم</h1>
+        </div>
         <a
-            href="{% url 'admin:catalog_product_changelist' %}"
-            class="inline-block mt-4 text-sm text-accent hover:underline font-bold"
+            href="{% url 'admin:index' %}"
+            class="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-surface transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-            إدارة المنتجات ←
+            <span>فتح لوحة إدارة Django</span>
+            <span aria-hidden="true">←</span>
         </a>
     </div>
 
-    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-sm font-bold text-secondary/60 mb-2">التصنيفات</h3>
-        <p class="text-3xl font-black text-primary">{{ total_categories }}</p>
-        <a
-            href="{% url 'admin:catalog_category_changelist' %}"
-            class="inline-block mt-4 text-sm text-accent hover:underline font-bold"
-        >
-            إدارة التصنيفات ←
-        </a>
+    <!-- KPI Grid -->
+    <div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="atelier-card p-6">
+            <h2 class="mb-2 text-xs font-bold tracking-wide text-secondary/65">
+                إجمالي المنتجات
+            </h2>
+            <p class="text-3xl font-extrabold text-primary tabular-nums">
+                {{ total_products }}
+            </p>
+            <a
+                href="{% url 'admin:catalog_product_changelist' %}"
+                class="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary transition-colors hover:text-secondary focus-visible:outline-none focus-visible:underline"
+            >
+                <span>إدارة المنتجات</span>
+                <span aria-hidden="true">←</span>
+            </a>
+        </div>
+
+        <div class="atelier-card p-6">
+            <h2 class="mb-2 text-xs font-bold tracking-wide text-secondary/65">
+                التصنيفات
+            </h2>
+            <p class="text-3xl font-extrabold text-primary tabular-nums">
+                {{ total_categories }}
+            </p>
+            <a
+                href="{% url 'admin:catalog_category_changelist' %}"
+                class="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary transition-colors hover:text-secondary focus-visible:outline-none focus-visible:underline"
+            >
+                <span>إدارة التصنيفات</span>
+                <span aria-hidden="true">←</span>
+            </a>
+        </div>
+
+        <div class="atelier-card p-6">
+            <h2 class="mb-2 text-xs font-bold tracking-wide text-secondary/65">
+                إجمالي التذاكر
+            </h2>
+            <p class="text-3xl font-extrabold text-primary tabular-nums">
+                {{ total_tickets }}
+            </p>
+            <a
+                href="{% url 'admin:support_ticket_changelist' %}"
+                class="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-primary transition-colors hover:text-secondary focus-visible:outline-none focus-visible:underline"
+            >
+                <span>إدارة التذاكر</span>
+                <span aria-hidden="true">←</span>
+            </a>
+        </div>
+
+        <div class="atelier-card p-6">
+            <h2 class="mb-2 text-xs font-bold tracking-wide text-secondary/65">
+                تذاكر جديدة معلقة
+            </h2>
+            <p class="text-3xl font-extrabold text-red-600 tabular-nums">
+                {{ pending_tickets }}
+            </p>
+            <span class="mt-4 inline-block text-xs text-secondary/60">
+                بانتظار المراجعة والرد
+            </span>
+        </div>
     </div>
 
-    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-sm font-bold text-secondary/60 mb-2">إجمالي التذاكر</h3>
-        <p class="text-3xl font-black text-primary">{{ total_tickets }}</p>
-        <a
-            href="{% url 'admin:support_ticket_changelist' %}"
-            class="inline-block mt-4 text-sm text-accent hover:underline font-bold"
-        >
-            إدارة التذاكر ←
-        </a>
-    </div>
+    <!-- Quick Links & Info -->
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div class="atelier-card p-6">
+            <h2 class="mb-4 font-display text-lg font-bold text-secondary">إجراءات سريعة</h2>
+            <ul class="divide-y divide-secondary/8 text-sm">
+                <li>
+                    <a
+                        href="{% url 'admin:catalog_product_add' %}"
+                        class="flex min-h-11 items-center justify-between py-2.5 font-bold text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >
+                        <span class="flex items-center gap-2.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span>إضافة منتج جديد</span>
+                        </span>
+                        <span class="text-secondary/45" aria-hidden="true">←</span>
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="{% url 'admin:catalog_category_add' %}"
+                        class="flex min-h-11 items-center justify-between py-2.5 font-bold text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >
+                        <span class="flex items-center gap-2.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                            </svg>
+                            <span>إضافة تصنيف جديد</span>
+                        </span>
+                        <span class="text-secondary/45" aria-hidden="true">←</span>
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="{% url 'admin:catalog_featuredproduct_changelist' %}"
+                        class="flex min-h-11 items-center justify-between py-2.5 font-bold text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >
+                        <span class="flex items-center gap-2.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                            </svg>
+                            <span>إدارة المنتجات المميزة</span>
+                        </span>
+                        <span class="text-secondary/45" aria-hidden="true">←</span>
+                    </a>
+                </li>
+                <li>
+                    <a
+                        href="{% url 'admin:catalog_storesettings_changelist' %}"
+                        class="flex min-h-11 items-center justify-between py-2.5 font-bold text-secondary transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >
+                        <span class="flex items-center gap-2.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span>إعدادات المتجر وسعر الصرف</span>
+                        </span>
+                        <span class="text-secondary/45" aria-hidden="true">←</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
 
-    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-sm font-bold text-secondary/60 mb-2">تذاكر معلقة</h3>
-        <p class="text-3xl font-black text-red-500">{{ pending_tickets }}</p>
+        <div class="atelier-card p-6">
+            <h2 class="mb-3 font-display text-lg font-bold text-secondary">معلومات النظام</h2>
+            <p class="text-sm leading-relaxed text-secondary/75">
+                استخدم لوحة إدارة Django لإدارة الكتالوج، التصنيفات الهرمية، العملات،
+                حسابات العميلات، وتذاكر الدعم الفني.
+            </p>
+            <div class="mt-4 rounded-xl border border-secondary/8 bg-background p-4 text-xs text-secondary/70">
+                <p>الواجهة: العربية (RTL) — متوافقة مع الهواتف والحواسيب.</p>
+            </div>
+        </div>
     </div>
-</div>
-
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-lg font-bold text-primary mb-4">روابط سريعة</h3>
-        <ul class="space-y-3">
-            <li>
-                <a
-                    href="{% url 'admin:index' %}"
-                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
-                >
-                    <span>⚙️</span> لوحة إدارة Django
-                </a>
-            </li>
-            <li>
-                <a
-                    href="{% url 'admin:catalog_product_add' %}"
-                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
-                >
-                    <span>➕</span> إضافة منتج جديد
-                </a>
-            </li>
-            <li>
-                <a
-                    href="{% url 'admin:catalog_category_add' %}"
-                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
-                >
-                    <span>📁</span> إضافة تصنيف جديد
-                </a>
-            </li>
-            <li>
-                <a
-                    href="{% url 'admin:catalog_featuredproduct_changelist' %}"
-                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
-                >
-                    <span>⭐</span> المنتجات المميزة
-                </a>
-            </li>
-            <li>
-                <a
-                    href="{% url 'admin:catalog_storesettings_changelist' %}"
-                    class="flex items-center gap-2 text-secondary hover:text-accent transition-colors font-bold"
-                >
-                    <span>🎨</span> إعدادات الموقع
-                </a>
-            </li>
-        </ul>
-    </div>
-
-    <div class="bg-surface border border-accent/20 rounded-2xl p-6 shadow-sm">
-        <h3 class="text-lg font-bold text-primary mb-4">معلومات</h3>
-        <p class="text-sm text-secondary/70">
-            استخدم لوحة إدارة Django لإدارة المنتجات، التصنيفات، المستخدمين،
-            الصلاحيات، والتذاكر.
-        </p>
-        <p class="text-sm text-secondary/50 mt-3">اللغة: العربية (RTL)</p>
-    </div>
-</div>
-
+</section>
 {% endblock %}

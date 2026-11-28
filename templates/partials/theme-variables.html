@@ -1,0 +1,19 @@
+{% if site_settings %}
+<style>
+:root {
+    --color-primary: {{ site_settings.light_color_primary }};
+    --color-secondary: {{ site_settings.light_color_secondary }};
+    --color-accent: {{ site_settings.light_color_accent }};
+    --color-background: {{ site_settings.light_color_background }};
+    --color-surface: {{ site_settings.light_color_surface }};
+}
+
+html.dark {
+    --color-primary: {{ site_settings.dark_color_primary }};
+    --color-secondary: {{ site_settings.dark_color_secondary }};
+    --color-accent: {{ site_settings.dark_color_accent }};
+    --color-background: {{ site_settings.dark_color_background }};
+    --color-surface: {{ site_settings.dark_color_surface }};
+}
+</style>
+{% endif %}

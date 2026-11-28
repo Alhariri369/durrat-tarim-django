@@ -11,6 +11,8 @@ def dashboard(request):
     templates/dashboard/index.html. Just a landing page — actual content
     management happens in Django's /admin/."""
     context = {
+        "page_title": "لوحة التحكم | درة تريم",
+        "robots_content": "noindex,nofollow",
         "total_products": Product.objects.count(),
         "total_categories": Category.objects.count(),
         "total_tickets": Ticket.objects.count(),

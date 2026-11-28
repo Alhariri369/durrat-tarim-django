@@ -1,32 +1,31 @@
-{% extends "base.html" %} {% load socialaccount %} {% block content %}
+{% extends "base.html" %} {% load static socialaccount %} {% block content %}
 <div
-    class="gradient-hero flex min-h-[85vh] items-center justify-center px-4 py-12"
+    class="gradient-hero flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 py-12"
 >
     <div class="w-full max-w-md">
         <!-- Auth Card -->
-        <div class="glass-card p-8 md:p-10">
-            <div class="mb-8 text-center">
-                <span
-                    class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 text-2xl shadow-sm shadow-accent/10"
-                    >👗</span
-                >
-                <h2 class="text-3xl font-black text-primary">
+        <div class="glass-card p-7 sm:p-9">
+            <div class="mb-7 text-center">
+                <img
+                    src="{% static 'images/logo-gold-transparent.png' %}"
+                    alt=""
+                    width="40"
+                    height="53"
+                    class="mx-auto mb-3 h-13 w-auto object-contain"
+                />
+                <h1 class="font-display text-2xl font-bold text-secondary sm:text-3xl">
                     إنشاء حساب جديد
-                </h2>
-                <p class="mt-2 text-sm text-secondary/50">
+                </h1>
+                <p class="mt-1.5 text-sm text-secondary/70">
                     انضمي إلى درة تريم واحفظي منتجاتكِ المفضلة
                 </p>
             </div>
 
-            {% if messages %} {% for message in messages %}
+            {% if error %}
             <div
-                class="mb-4 rounded-2xl border-l-4 p-3.5 text-center text-sm font-bold {% if message.tags == 'success' %}border-emerald-500 bg-emerald-50 text-emerald-700{% elif message.tags == 'error' %}border-red-500 bg-red-50 text-red-700{% else %}border-blue-500 bg-blue-50 text-blue-700{% endif %}"
-            >
-                {{ message }}
-            </div>
-            {% endfor %} {% endif %} {% if error %}
-            <div
-                class="mb-4 rounded-2xl border-l-4 border-red-500 bg-red-50 p-3.5 text-center text-sm font-bold text-red-700"
+                id="signup-error"
+                role="alert"
+                class="mb-5 rounded-xl border border-red-200 border-s-4 border-s-red-600 bg-red-50 p-3.5 text-start text-sm font-bold text-red-700"
             >
                 {{ error }}
             </div>
@@ -38,11 +37,11 @@
             {% if provider.id == "google" %}
             <a
                 href="{% provider_login_url provider.id process='signup' next=request.GET.next %}"
-                class="group flex w-full items-center justify-center gap-3 rounded-2xl border border-[#747775] bg-white px-6 py-3.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+                class="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-secondary/18 bg-surface px-5 py-3 text-sm font-bold text-secondary transition-colors hover:border-primary/35 hover:bg-background/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5"
+                    class="h-5 w-5 shrink-0"
                     viewBox="0 0 48 48"
                     aria-hidden="true"
                 >
@@ -63,21 +62,18 @@
                         d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
                     />
                 </svg>
-                <span class="text-sm font-medium text-[#1f1f1f]"
-                    >إنشاء حساب عبر Google</span
-                >
+                <span>التسجيل عبر Google</span>
             </a>
 
             <!-- Divider -->
             <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center">
-                    <span class="w-full border-t border-secondary/10"></span>
+                <div class="absolute inset-0 flex items-center" aria-hidden="true">
+                    <span class="w-full border-t border-secondary/12"></span>
                 </div>
                 <div class="relative flex justify-center">
-                    <span
-                        class="bg-surface px-4 text-xs font-bold text-secondary/40"
-                        >أو عبر البريد الإلكتروني</span
-                    >
+                    <span class="bg-surface px-3 text-xs font-medium text-secondary/60">
+                        أو عبر البريد الإلكتروني
+                    </span>
                 </div>
             </div>
             {% endif %} {% endfor %}
@@ -91,7 +87,7 @@
                 <div>
                     <label
                         for="full_name"
-                        class="block text-sm font-bold text-secondary/70"
+                        class="mb-1.5 block text-sm font-bold text-secondary"
                         >الاسم الكامل</label
                     >
                     <input
@@ -100,15 +96,17 @@
                         id="full_name"
                         required
                         autocomplete="name"
+                        placeholder="مثال: سارة باوزير…"
                         value="{{ full_name|default:'' }}"
-                        class="mt-2 block w-full rounded-2xl border-2 border-secondary/10 bg-background/60 px-4 py-3 text-sm font-medium transition-all focus:border-accent/60 focus:bg-background focus:outline-none focus:ring-4 focus:ring-accent/10"
+                        {% if error %}aria-invalid="true" aria-describedby="signup-error"{% endif %}
+                        class="block min-h-11 w-full rounded-xl border border-secondary/15 bg-background/60 px-4 py-2.5 text-sm text-secondary placeholder:text-secondary/45 transition-colors focus:border-primary focus:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                     />
                 </div>
 
                 <div>
                     <label
                         for="email"
-                        class="block text-sm font-bold text-secondary/70"
+                        class="mb-1.5 block text-sm font-bold text-secondary"
                         >البريد الإلكتروني</label
                     >
                     <input
@@ -116,16 +114,20 @@
                         name="email"
                         id="email"
                         required
+                        dir="ltr"
+                        inputmode="email"
                         autocomplete="email"
+                        spellcheck="false"
+                        placeholder="name@example.com…"
                         value="{{ email|default:'' }}"
-                        class="mt-2 block w-full rounded-2xl border-2 border-secondary/10 bg-background/60 px-4 py-3 text-sm font-medium transition-all focus:border-accent/60 focus:bg-background focus:outline-none focus:ring-4 focus:ring-accent/10"
+                        class="block min-h-11 w-full rounded-xl border border-secondary/15 bg-background/60 px-4 py-2.5 text-start text-sm text-secondary placeholder:text-secondary/45 transition-colors focus:border-primary focus:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                     />
                 </div>
 
                 <div>
                     <label
                         for="password1"
-                        class="block text-sm font-bold text-secondary/70"
+                        class="mb-1.5 block text-sm font-bold text-secondary"
                         >كلمة المرور</label
                     >
                     <input
@@ -133,15 +135,17 @@
                         name="password1"
                         id="password1"
                         required
+                        dir="ltr"
                         autocomplete="new-password"
-                        class="mt-2 block w-full rounded-2xl border-2 border-secondary/10 bg-background/60 px-4 py-3 text-sm font-medium transition-all focus:border-accent/60 focus:bg-background focus:outline-none focus:ring-4 focus:ring-accent/10"
+                        placeholder="8 أحرف على الأقل…"
+                        class="block min-h-11 w-full rounded-xl border border-secondary/15 bg-background/60 px-4 py-2.5 text-start text-sm text-secondary placeholder:text-secondary/45 transition-colors focus:border-primary focus:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                     />
                 </div>
 
                 <div>
                     <label
                         for="password2"
-                        class="block text-sm font-bold text-secondary/70"
+                        class="mb-1.5 block text-sm font-bold text-secondary"
                         >تأكيد كلمة المرور</label
                     >
                     <input
@@ -149,25 +153,27 @@
                         name="password2"
                         id="password2"
                         required
+                        dir="ltr"
                         autocomplete="new-password"
-                        class="mt-2 block w-full rounded-2xl border-2 border-secondary/10 bg-background/60 px-4 py-3 text-sm font-medium transition-all focus:border-accent/60 focus:bg-background focus:outline-none focus:ring-4 focus:ring-accent/10"
+                        placeholder="أعيدي كتابة كلمة المرور…"
+                        class="block min-h-11 w-full rounded-xl border border-secondary/15 bg-background/60 px-4 py-2.5 text-start text-sm text-secondary placeholder:text-secondary/45 transition-colors focus:border-primary focus:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                     />
                 </div>
 
                 <button
                     type="submit"
-                    class="mt-1 w-full rounded-2xl bg-primary py-3.5 text-sm font-black text-background shadow-lg shadow-primary/15 transition-all hover:opacity-90 hover:shadow-xl active:scale-[0.98]"
+                    class="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-xl bg-primary px-6 py-3 text-sm font-bold text-surface transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 >
                     إنشاء حساب
                 </button>
             </form>
         </div>
 
-        <p class="mt-6 text-center text-sm text-secondary/50">
-            لديك حساب بالفعل؟
+        <p class="mt-6 text-center text-sm text-secondary/70">
+            لديكِ حساب بالفعل؟
             <a
                 href="{% url 'account_login' %}"
-                class="font-bold text-accent transition-colors hover:text-accent/70 hover:underline"
+                class="font-bold text-primary transition-colors hover:text-secondary focus-visible:outline-none focus-visible:underline"
                 >تسجيل الدخول</a
             >
         </p>

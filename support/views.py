@@ -63,15 +63,23 @@ def _record_rate_limit(request):
 
 @require_http_methods(["GET", "POST"])
 def contact(request):
+    seo_context = {
+        "page_title": "اتصل بنا | درة تريم",
+        "meta_description": (
+            "تواصلي مع متجر درة تريم في سوق الفتح، تريم، وادي حضرموت، اليمن "
+            "عبر واتساب أو نموذج التواصل للاستفسار عن القطع العرائسية والأقمشة والأزياء."
+        ),
+        "breadcrumbs": [
+            ("الرئيسية", "/"),
+            ("اتصل بنا", reverse("contact")),
+        ],
+    }
     if request.method == "GET":
         form = ContactForm()
         return render(
             request,
             "contact.html",
-            {
-                "form": form,
-                "page_title": "اتصل بنا | درة تريم",
-            },
+            {"form": form, **seo_context},
         )
 
     # --- POST: only authenticated users with a verified email may submit ---
@@ -91,7 +99,7 @@ def contact(request):
         return render(
             request,
             "contact.html",
-            {"form": form, "page_title": "اتصل بنا | درة تريم"},
+            {"form": form, **seo_context},
             status=400,
         )
 

@@ -1,0 +1,53 @@
+name: CI Release Gate
+
+on:
+  push:
+    branches:
+      - main
+      - dev/integration
+      - "dev/*"
+  pull_request:
+    branches:
+      - main
+      - dev/integration
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+
+    env:
+      DJANGO_SECRET_KEY: "ci-insecure-test-key-not-for-production"
+      DJANGO_DEBUG: "True"
+      USE_REMOTE_DB: "False"
+      DJANGO_EMAIL_BACKEND: "django.core.mail.backends.locmem.EmailBackend"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv and Python 3.13
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint with Ruff
+        run: uv run ruff check .
+
+      - name: Check pending migrations
+        run: uv run python manage.py makemigrations --check --dry-run
+
+      - name: Run Django system checks
+        run: uv run python manage.py check
+
+      - name: Run test suite with coverage
+        run: uv run coverage run manage.py test
+
+      - name: Enforce coverage threshold (>= 85%)
+        run: uv run coverage report --fail-under=85

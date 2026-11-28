@@ -1,60 +1,86 @@
-{% extends "base.html" %} {% block content %}
-<section class="mx-auto max-w-7xl px-4 py-12 md:py-16">
-    <!-- Page Header -->
-    <div class="mb-10 text-center reveal">
-        <span
-            class="mb-3 inline-block rounded-full bg-accent/10 px-4 py-1.5 text-xs font-bold tracking-wide text-accent"
-        >
-            {% if query %}نتائج البحث{% else %}جميع المنتجات{% endif %}
-        </span>
-        <h1 class="text-3xl font-black text-primary md:text-4xl">
+{% extends "base.html" %} {% load catalog_tags %} {% block content %}
+{% if is_catalog_index and products %}
+{% catalog_json_ld search_heading request.path products %}
+{% endif %}
+{% breadcrumb_json_ld breadcrumbs %}
+<section class="mx-auto max-w-7xl px-4 py-10 sm:px-6 md:py-14 lg:px-8">
+    <!-- Breadcrumbs -->
+    <nav aria-label="مسار التنقل" class="mb-6">
+        <ol class="flex flex-wrap items-center gap-2 text-xs font-medium text-secondary/65">
+            {% for crumb_name, crumb_url in breadcrumbs %}
+            <li class="flex items-center gap-2">
+                {% if not forloop.last %}
+                <a
+                    href="{{ crumb_url }}"
+                    class="transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    >{{ crumb_name }}</a
+                >
+                <span class="text-secondary/35" aria-hidden="true">/</span>
+                {% else %}
+                <span aria-current="page" class="font-bold text-secondary">{{ crumb_name }}</span>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    </nav>
+
+    <!-- Header & Search Bar -->
+    <div class="mb-10 border-b border-secondary/10 pb-8 reveal">
+        <p class="mb-2 flex items-center gap-2.5 text-xs font-bold tracking-wide text-primary">
+            <span class="h-px w-6 bg-gold" aria-hidden="true"></span>
+            <span>{% if query %}البحث في الكتالوج{% else %}كتالوج الأزياء{% endif %}</span>
+        </p>
+        <h1 class="font-display text-3xl font-bold text-secondary md:text-4xl">
             {{ search_heading }}
         </h1>
         {% if not query and products %}
-        <p class="mt-3 text-secondary/50">تصفحي كافة منتجاتنا المتاحة</p>
+        <p class="mt-2 text-sm text-secondary/70 sm:text-base">
+            تصفحي كافة التصاميم المتاحة بالأسعار المحدثة بالريال السعودي واليمني.
+        </p>
         {% endif %}
-    </div>
 
-    <!-- Search Form -->
-    <form
-        method="get"
-        action="{% url 'product-search' %}"
-        role="search"
-        class="mx-auto mb-12 flex max-w-2xl items-stretch gap-3 reveal stagger-2"
-    >
-        <label for="catalog-search" class="sr-only">ابحثي عن منتج</label>
-        <div class="relative flex-1">
-            <input
-                id="catalog-search"
-                type="search"
-                name="q"
-                value="{{ query }}"
-                placeholder="اسم المنتج أو وصفه..."
-                class="w-full rounded-2xl border-2 border-secondary/10 bg-surface py-3.5 pr-5 pl-12 text-sm transition-all focus:border-accent/50 focus:outline-none focus:ring-4 focus:ring-accent/5"
-                maxlength="200"
-            />
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary/30"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-            </svg>
-        </div>
-        <button
-            type="submit"
-            class="shrink-0 rounded-2xl bg-primary px-8 py-3.5 text-sm font-bold text-background shadow-lg shadow-primary/15 transition-all hover:opacity-90 hover:shadow-xl active:scale-[0.98]"
+        <!-- Search Form -->
+        <form
+            method="get"
+            action="{% url 'product-search' %}"
+            role="search"
+            class="mt-6 flex max-w-2xl items-stretch gap-2.5"
         >
-            بحث
-        </button>
-    </form>
+            <label for="catalog-search" class="sr-only">ابحثي عن منتج</label>
+            <div class="relative min-w-0 flex-1">
+                <input
+                    id="catalog-search"
+                    type="search"
+                    name="q"
+                    value="{{ query }}"
+                    placeholder="ابحثي باسم القطعة أو القماش أو اللون…"
+                    maxlength="200"
+                    class="min-h-12 w-full rounded-xl border border-secondary/15 bg-surface py-3 ps-4 pe-11 text-sm text-secondary placeholder:text-secondary/50 transition-colors focus:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                />
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="pointer-events-none absolute end-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-secondary/45"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                </svg>
+            </div>
+            <button
+                type="submit"
+                class="min-h-12 shrink-0 rounded-xl bg-primary px-7 py-3 text-sm font-bold text-surface transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+                بحث
+            </button>
+        </form>
+    </div>
 
     <!-- Results -->
     {% if products %}
@@ -63,35 +89,36 @@
     {% else %}
     <!-- Empty State -->
     <div
-        class="rounded-[2.5rem] border-2 border-dashed border-secondary/10 py-20 text-center reveal"
+        class="rounded-2xl border border-secondary/12 bg-surface px-6 py-16 text-center reveal"
     >
         <div
-            class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-2xl bg-accent/5 text-4xl"
+            class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl border border-secondary/10 bg-background text-primary"
+            aria-hidden="true"
         >
-            🔍
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
         </div>
-        <h2 class="mb-2 text-xl font-bold text-secondary">
+        <h2 class="mb-2 text-lg font-bold text-secondary">
             لم نتمكن من العثور على نتائج
         </h2>
 
         {% if query %}
-        <p class="mx-auto mb-6 max-w-md text-secondary/50">
-            عذراً، لا توجد منتجات تطابق بحثكِ عن "<span
-                class="font-bold text-secondary"
-                >{{ query }}</span
-            >". جربي كلمات مفتاحية مختلفة.
+        <p class="mx-auto mb-6 max-w-md text-sm text-secondary/70">
+            عذراً، لا توجد منتجات تطابق بحثكِ عن «<span class="font-bold text-secondary">{{ query }}</span>». جربي كلمات مفتاحية أخرى.
         </p>
         {% else %}
-        <p class="mb-6 text-secondary/50">
+        <p class="mb-6 text-sm text-secondary/70">
             لا توجد منتجات متاحة حالياً. يرجى العودة لاحقاً.
         </p>
         {% endif %}
 
         <a
-            href="{% url 'product-search' %}"
-            class="inline-flex items-center gap-2 rounded-2xl bg-primary px-8 py-3 text-sm font-bold text-background shadow-lg shadow-primary/15 transition-all hover:opacity-90 hover:-translate-y-0.5"
+            href="{% url 'product-list' %}"
+            class="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-surface transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-            عرض جميع المنتجات
+            <span>عرض جميع المنتجات</span>
+            <span aria-hidden="true">←</span>
         </a>
     </div>
     {% endif %}
