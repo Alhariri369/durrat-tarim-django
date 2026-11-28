@@ -33,14 +33,24 @@ def _absolute_uri(request, path):
 def product_json_ld(context, product):
     """Render Product JSON-LD. Usage: {% product_json_ld product %}"""
     request = context["request"]
+    base_url = f"{request.scheme}://{request.get_host()}"
+    store_id = f"{base_url}/#store"
     url = _absolute_uri(request, reverse("product-detail", args=[product.pk]))
+    fallback_image = context.get("default_og_image_url") or _absolute_uri(
+        request, static("images/og-default.jpg")
+    )
+    image_url = (
+        _absolute_uri(request, product.image.url) if product.image else fallback_image
+    )
     data = {
         "@context": "https://schema.org",
         "@type": "Product",
+        "inLanguage": "ar",
         "name": product.name_ar,
         "description": (product.description_ar or product.name_ar)[:5000],
         "sku": product.slug,
         "url": url,
+        "image": [image_url],
         "brand": {"@type": "Brand", "name": "درة تريم"},
         "offers": {
             "@type": "Offer",
@@ -49,12 +59,34 @@ def product_json_ld(context, product):
             "priceCurrency": "SAR",
             "availability": "https://schema.org/InStock",
             "itemCondition": "https://schema.org/NewCondition",
+            "seller": {
+                "@type": "ClothingStore",
+                "@id": store_id,
+                "name": "درة تريم",
+                "url": base_url,
+            },
+            # Verified 1-day return policy; returnFees omitted until store confirms return shipping fee terms.
+            "hasMerchantReturnPolicy": {
+                "@type": "MerchantReturnPolicy",
+                "applicableCountry": "YE",
+                "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+                "merchantReturnDays": 1,
+                "returnMethod": "https://schema.org/ReturnInStore",
+            },
+            # Verified Yemen delivery coverage; shippingRate omitted until regional fee schedule is published.
+            "shippingDetails": {
+                "@type": "OfferShippingDetails",
+                "shippingDestination": {
+                    "@type": "DefinedRegion",
+                    "addressCountry": "YE",
+                },
+            },
         },
     }
+    if product.name_en:
+        data["alternateName"] = product.name_en
     if product.category_id:
         data["category"] = product.category.full_path
-    if product.image:
-        data["image"] = [_absolute_uri(request, product.image.url)]
     return {"json_ld": _json_ld(data)}
 
 
@@ -128,6 +160,32 @@ def catalog_json_ld(context, name, url_path, products):
     return {"json_ld": _json_ld(data)}
 
 
+@register.inclusion_tag("catalog/partials/category_json_ld.html", takes_context=True)
+def categories_index_json_ld(context, categories):
+    """Render CollectionPage JSON-LD for the top-level categories index (/products/types/)."""
+    request = context["request"]
+    items = [
+        {
+            "@type": "ListItem",
+            "position": position,
+            "name": category.name_ar,
+            "url": _absolute_uri(
+                request, reverse("product-type", args=[category.slug])
+            ),
+        }
+        for position, category in enumerate(categories, start=1)
+    ]
+    data = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "inLanguage": "ar",
+        "name": "التصنيفات | درة تريم",
+        "url": _absolute_uri(request, reverse("product-types")),
+        "mainEntity": {"@type": "ItemList", "itemListElement": items},
+    }
+    return {"json_ld": _json_ld(data)}
+
+
 @register.inclusion_tag("catalog/partials/breadcrumb_json_ld.html", takes_context=True)
 def breadcrumb_json_ld(context, items):
     """Render BreadcrumbList JSON-LD from a list of (name, url) pairs.
@@ -162,6 +220,7 @@ def store_json_ld(context):
     request = context["request"]
     site_settings = context.get("site_settings")
     base_url = f"{request.scheme}://{request.get_host()}"
+    store_id = f"{base_url}/#store"
     logo_url = _absolute_uri(request, static("images/logo-gold-transparent.png"))
     og_image_url = context.get("default_og_image_url") or _absolute_uri(
         request, static("images/og-default.jpg")
@@ -169,19 +228,23 @@ def store_json_ld(context):
     whatsapp = (
         getattr(site_settings, "whatsapp_number", "") or "967783278181"
     ).lstrip("+")
-    address_ar = getattr(site_settings, "address_ar", "") or "سوق الفتح"
+    address_ar = getattr(site_settings, "address_ar", "") or "سوق الفتح، تريم"
 
     store_data = {
         "@context": "https://schema.org",
         "@type": "ClothingStore",
+        "@id": store_id,
         "name": "درة تريم",
-        "description": "متجر درة تريم للقطع العرائسية والأقمشة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.",
+        "alternateName": ["Durrat Tarim", "درة تريم للأقمشة"],
+        "description": "متجر درة تريم للقطع العرائسية والأقمشة والأزياء الراقية في سوق الفتح، تريم وسيئون ووادي حضرموت واليمن.",
         "url": base_url,
         "logo": logo_url,
         "image": og_image_url,
         "telephone": f"+{whatsapp}",
         "priceRange": "$$",
         "currenciesAccepted": "SAR, YER",
+        "paymentAccepted": "Cash, Bank Transfer",
+        "hasMap": "https://www.google.com/maps?cid=10124349785966841790",
         "address": {
             "@type": "PostalAddress",
             "streetAddress": address_ar,
@@ -238,8 +301,12 @@ def store_json_ld(context):
     website_data = {
         "@context": "https://schema.org",
         "@type": "WebSite",
+        "@id": f"{base_url}/#website",
+        "inLanguage": "ar",
         "url": base_url,
         "name": "درة تريم",
+        "alternateName": "Durrat Tarim",
+        "publisher": {"@id": store_id},
         "potentialAction": {
             "@type": "SearchAction",
             "target": {

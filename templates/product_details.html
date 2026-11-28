@@ -31,7 +31,7 @@
                 {% if product.image %}
                 <img
                     src="{{ product.image.url }}?tr=w-1200,f-webp,q-85"
-                    alt="{{ product.name_ar }}"
+                    alt="{{ product.name_ar }}{% if product.category %} - {{ product.category.name_ar }}{% endif %} | درة تريم"
                     width="900"
                     height="1200"
                     fetchpriority="high"
@@ -41,7 +41,7 @@
                 {% else %}
                 <img
                     src="{% static 'images/product-placeholder.svg' %}"
-                    alt="{{ product.name_ar }}"
+                    alt="{{ product.name_ar }}{% if product.category %} - {{ product.category.name_ar }}{% endif %} | درة تريم"
                     width="900"
                     height="1200"
                     fetchpriority="high"

@@ -3,7 +3,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 
 from catalog.models import StoreSettings
-from durrat_tarim.middleware import is_noindex_host
+from durrat_tarim.middleware import PRIVATE_NOINDEX_PREFIXES, is_noindex_host
 
 
 def _build_canonical_url(request) -> str:
@@ -22,8 +22,9 @@ def site_context(request):
     store_settings = StoreSettings.get_current()
     user = request.user if request.user.is_authenticated else None
     seo_noindex_host = is_noindex_host(request)
+    is_private_route = request.path.startswith(PRIVATE_NOINDEX_PREFIXES)
 
-    return {
+    ctx = {
         "site_settings": store_settings,
         "store_user": user,
         "is_store_authenticated": bool(user),
@@ -41,3 +42,6 @@ def site_context(request):
             else getattr(settings, "GOOGLE_SITE_VERIFICATION", "")
         ),
     }
+    if is_private_route:
+        ctx["robots_content"] = "noindex,nofollow"
+    return ctx

@@ -18,15 +18,18 @@
             class="group flex shrink-0 items-center gap-2.5 rounded-lg py-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label="درة تريم - الرئيسية"
         >
-            <img
-                src="{% static 'images/logo-gold-transparent.png' %}"
-                alt=""
-                width="34"
-                height="45"
-                decoding="async"
-                class="h-10 w-auto shrink-0 object-contain lg:h-11"
-                onerror="this.remove()"
-            />
+            <picture class="shrink-0">
+                <source srcset="{% static 'images/logo-nav.webp' %}" type="image/webp" />
+                <img
+                    src="{% static 'images/logo-gold-transparent.png' %}"
+                    alt=""
+                    width="34"
+                    height="45"
+                    decoding="async"
+                    class="h-10 w-auto shrink-0 object-contain lg:h-11"
+                    onerror="this.closest('picture').remove()"
+                />
+            </picture>
             <span class="flex flex-col leading-none">
                 <span
                     class="font-display text-xl font-bold tracking-tight text-primary transition-colors group-hover:text-secondary md:text-2xl"
@@ -215,7 +218,7 @@
                 name="q"
                 type="search"
                 value="{{ request.GET.q }}"
-                placeholder="ابحثي عن عباية أو فستان…"
+                placeholder="ابحثي عن قطعة عرائسية أو قماش…"
                 maxlength="100"
                 class="min-h-11 min-w-0 grow rounded-s-xl rounded-e-none border border-e-0 border-secondary/15 bg-background/80 px-4 py-2.5 text-sm text-secondary placeholder:text-secondary/50 focus:border-primary focus:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
             />

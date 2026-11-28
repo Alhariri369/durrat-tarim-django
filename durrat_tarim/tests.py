@@ -332,6 +332,19 @@ class SitemapAndRobotsTests(TestCase):
         self.assertNotIn("Disallow: /*?*\n", body)
         self.assertIn("Sitemap: http://testserver/sitemap.xml", body)
 
+    def test_llms_txt_rendering(self):
+        Category.objects.create(
+            name_ar="قطع عرائسية", slug="llms-bridal", is_active=True
+        )
+        response = self.client.get("/llms.txt", HTTP_HOST="durrattarim.com")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "text/plain; charset=utf-8")
+        body = response.content.decode("utf-8")
+        self.assertIn("# درة تريم (Durrat Tarim)", body)
+        self.assertIn("http://durrattarim.com/sitemap.xml", body)
+        self.assertIn("http://durrattarim.com/products/types/llms-bridal/", body)
+
 
 class _HeadSeoParser(HTMLParser):
     def __init__(self):

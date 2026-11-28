@@ -11,15 +11,18 @@
         <!-- Brand -->
         <div>
             <div class="mb-4 flex items-center gap-3">
-                <img
-                    src="{% static 'images/logo-gold-transparent.png' %}"
-                    alt=""
-                    width="38"
-                    height="50"
-                    loading="lazy"
-                    class="h-12 w-auto shrink-0 object-contain"
-                    onerror="this.remove()"
-                />
+                <picture class="shrink-0">
+                    <source srcset="{% static 'images/logo-nav.webp' %}" type="image/webp" />
+                    <img
+                        src="{% static 'images/logo-gold-transparent.png' %}"
+                        alt=""
+                        width="38"
+                        height="50"
+                        loading="lazy"
+                        class="h-12 w-auto shrink-0 object-contain"
+                        onerror="this.closest('picture').remove()"
+                    />
+                </picture>
                 <div>
                     <h2 class="font-display text-2xl font-bold text-primary">درة تريم</h2>
                     <p class="text-xs font-medium text-secondary/60">وادي حضرموت · تريم وسيئون</p>
@@ -105,7 +108,11 @@
                 </a>
 
                 {% if site_settings.local_phone %}
-                <p class="flex items-center gap-3 text-secondary/75 tabular-nums" dir="ltr">
+                <a
+                    href="tel:+967{{ site_settings.local_phone }}"
+                    class="flex items-center gap-3 text-secondary/75 tabular-nums transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                    dir="ltr"
+                >
                     <span
                         class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-secondary/10 bg-background text-primary"
                     >
@@ -126,10 +133,9 @@
                         </svg>
                     </span>
                     <span>+967 {{ site_settings.local_phone }}</span>
-                </p>
+                </a>
                 {% endif %}
 
-                {% if site_settings.address_ar %}
                 <p class="flex items-start gap-3 text-secondary/75">
                     <span
                         class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-secondary/10 bg-background text-primary"
@@ -155,9 +161,8 @@
                             />
                         </svg>
                     </span>
-                    <span class="leading-relaxed">{{ site_settings.address_ar }}</span>
+                    <span class="leading-relaxed">{{ site_settings.address_ar|default:"سوق الفتح، تريم، وادي حضرموت، اليمن" }}</span>
                 </p>
-                {% endif %}
             </div>
 
             <div class="mt-6">
@@ -190,7 +195,7 @@
     <div class="border-t border-secondary/8 py-5 text-center">
         <p class="text-xs text-secondary/65 tabular-nums">
             © {% now "Y" %}
-            <span class="font-bold text-secondary">درة تريم</span> — جميع الحقوق محفوظة.
+            <span class="font-bold text-secondary">درة تريم</span> · جميع الحقوق محفوظة.
         </p>
     </div>
 </footer>

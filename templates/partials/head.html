@@ -1,12 +1,18 @@
 ﻿{% load static catalog_tags %}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{{ page_title|default:"درة تريم | قطع عرائسية وأقمشة وأزياء راقية" }}</title>
 <meta
     name="description"
-    content="{{ meta_description|default:'درة تريم — وجهتكِ الأولى للقطع العرائسية والأقمشة الفاخرة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.'|truncatechars:160 }}"
+    content="{{ meta_description|default:'درة تريم: قطع عرائسية وأقمشة فاخرة وأزياء راقية في تريم وسيئون ووادي حضرموت واليمن بأسعار بالريال السعودي واليمني وطلب عبر واتساب.'|truncatechars:160 }}"
 />
 
-<!-- Canonical URL -->
+<!-- Canonical & Locale URLs -->
 <link rel="canonical" href="{{ canonical_url }}" />
+{% if not seo_noindex_host and 'noindex' not in robots_content|default:'' %}
+<link rel="alternate" hreflang="ar" href="{{ canonical_url }}" />
+<link rel="alternate" hreflang="x-default" href="{{ canonical_url }}" />
+{% endif %}
 
 <!-- Open Graph (WhatsApp / Facebook / Messenger link previews) -->
 <meta property="og:type" content="{{ og_type|default:'website' }}" />
@@ -19,12 +25,24 @@
 />
 <meta
     property="og:description"
-    content="{{ meta_description|default:'درة تريم — وجهتكِ الأولى للقطع العرائسية والأقمشة الفاخرة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.'|truncatechars:160 }}"
+    content="{{ meta_description|default:'درة تريم: قطع عرائسية وأقمشة فاخرة وأزياء راقية في تريم وسيئون ووادي حضرموت واليمن بأسعار بالريال السعودي واليمني وطلب عبر واتساب.'|truncatechars:160 }}"
 />
 <meta
     property="og:image"
     content="{{ og_image|default:default_og_image_url }}"
 />
+{% if not og_image or 'w-1200,h-630' in og_image %}
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+{% endif %}
+<meta
+    property="og:image:alt"
+    content="{{ page_title|default:'درة تريم | قطع عرائسية وأقمشة وأزياء راقية' }}"
+/>
+{% if product %}
+<meta property="product:price:amount" content="{{ product.price_sar }}" />
+<meta property="product:price:currency" content="SAR" />
+{% endif %}
 
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image" />
@@ -34,7 +52,7 @@
 />
 <meta
     name="twitter:description"
-    content="{{ meta_description|default:'درة تريم — وجهتكِ الأولى للقطع العرائسية والأقمشة الفاخرة والأزياء الراقية في تريم وسيئون ووادي حضرموت واليمن.'|truncatechars:160 }}"
+    content="{{ meta_description|default:'درة تريم: قطع عرائسية وأقمشة فاخرة وأزياء راقية في تريم وسيئون ووادي حضرموت واليمن بأسعار بالريال السعودي واليمني وطلب عبر واتساب.'|truncatechars:160 }}"
 />
 <meta
     name="twitter:image"
@@ -49,10 +67,10 @@
 />
 {% endif %}
 
+{% if not seo_noindex_host and 'noindex' not in robots_content|default:'' %}
 {% store_json_ld %}
+{% endif %}
 
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="icon" type="image/png" sizes="64x64" href="{% static 'images/favicon.png' %}" />
 <link rel="apple-touch-icon" sizes="180x180" href="{% static 'images/apple-touch-icon.png' %}" />
 

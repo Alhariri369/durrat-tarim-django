@@ -8,10 +8,10 @@
             <span>خدمة العميلات</span>
         </p>
         <h1 class="font-display text-3xl font-bold text-secondary md:text-4xl">
-            يسعدنا تواصلكِ معنا
+            تواصلي مع معرض درة تريم
         </h1>
         <p class="mt-2 max-w-2xl text-sm text-secondary/70 sm:text-base">
-            نحن هنا لمساعدتكِ في اختيار الإطلالة المثالية والإجابة عن كافة استفساراتكِ.
+            نسعد باستقبالكِ في معرضنا بسوق الفتح في تريم أو الرد المباشر عبر واتساب لتأكيد المقاسات وتفاصيل التوصيل.
         </p>
     </div>
 
@@ -38,7 +38,7 @@
                         <div class="min-w-0">
                             <h3 class="font-bold text-secondary">الموقع</h3>
                             <p class="mt-0.5 leading-relaxed text-secondary/75">
-                                {{ site_settings.address_ar|default:"حضرموت، تريم، سوق الفتح" }}
+                                {{ site_settings.address_ar|default:"سوق الفتح، تريم، وادي حضرموت، اليمن" }}
                             </p>
                         </div>
                     </div>
@@ -66,6 +66,30 @@
                             </a>
                         </div>
                     </div>
+
+                    {% if site_settings.local_phone %}
+                    <!-- Local Phone -->
+                    <div class="flex items-start gap-3.5">
+                        <span
+                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-secondary/10 bg-background text-primary"
+                            aria-hidden="true"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                        </span>
+                        <div class="min-w-0">
+                            <h3 class="font-bold text-secondary">الهاتف المحلي</h3>
+                            <a
+                                href="tel:+967{{ site_settings.local_phone }}"
+                                class="mt-0.5 inline-block text-secondary/75 tabular-nums transition-colors hover:text-primary focus-visible:outline-none focus-visible:underline"
+                                dir="ltr"
+                            >
+                                +967 {{ site_settings.local_phone }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
 
                     <!-- Working Hours -->
                     <div class="flex items-start gap-3.5">
@@ -106,13 +130,23 @@
                     class="mt-6 overflow-hidden rounded-xl border border-secondary/12 bg-background"
                 >
                     <iframe
-                        src="{{ site_settings.map_iframe_url|default:'https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3839.227361623842!2d48.9772408!3d16.053167!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMTbCsDAzJzExLjQiTiA0OMKwNTgnMzgwMSJF!5e0!3m2!1sen!2sye!4v1700000000000' }}"
+                        src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d958.5604308170061!2d48.97709055910168!3d16.052941416759257!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3de6b9274aa4eb45%3A0x8c80eb41e1ea8fbe!2z2K_YsdipINiq2YDYsdmK2YDZhSDZhNmE2KPZgtmF2LTYqQ!5e0!3m2!1sen!2s!4v1774662068762!5m2!1sen!2s"
                         class="h-56 w-full border-0"
                         allowfullscreen=""
                         loading="lazy"
-                        title="موقعنا على الخريطة"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="موقع معرض درة تريم على الخريطة"
                     ></iframe>
                 </div>
+                <a
+                    href="https://www.google.com/maps?cid=10124349785966841790"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-primary transition-colors hover:text-secondary focus-visible:outline-none focus-visible:underline"
+                >
+                    <span>فتح الموقع في خرائط Google</span>
+                    <span aria-hidden="true">←</span>
+                </a>
             </div>
         </div>
 
@@ -123,8 +157,13 @@
                     أرسلي رسالة
                 </h2>
                 <p class="mb-6 text-sm text-secondary/70">
-                    املئي النموذج أدناه وسنقوم بالرد عليكِ خلال 24 ساعة عمل.
+                    للاستفسار الفوري بدون تسجيل دخول، راسلينا عبر واتساب. أو أرسلي تذكرة دعم عبر النموذج أدناه بحسابكِ الموثق.
                 </p>
+                {% if not is_store_authenticated %}
+                <div class="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs leading-relaxed text-secondary/80">
+                    يتطلب إرسال النموذج <a href="{% url 'account_login' %}?next={{ request.path }}" class="font-bold text-primary underline hover:text-secondary">تسجيل الدخول بحساب موثق</a>. للرد المباشر والسريع يمكنكِ <a href="https://wa.me/{{ site_settings.whatsapp_number|default:'967783278181' }}" target="_blank" rel="noopener noreferrer" class="font-bold text-whatsapp underline">مراسلتنا عبر واتساب</a>.
+                </div>
+                {% endif %}
 
                 <form method="post" class="space-y-5" novalidate>
                     {% csrf_token %}
